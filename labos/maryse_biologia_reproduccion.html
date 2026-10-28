@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioReproLab — Reproducción y Salud Sexual</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a0a2e 0%, #0f0518 100%);
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  #home-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  #home-screen.hidden { display: none; }
+  #home-screen h1 {
+    font-size: 48px; font-weight: 800;
+    background: linear-gradient(90deg, #ff6b9d, #c44dff, #4dc9f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px; text-align: center;
+  }
+  #home-screen .subtitle { 
+    font-size: 15px; color: #a0aab5; margin-bottom: 40px; 
+    text-align: center; max-width: 600px; line-height: 1.6;
+  }
+  
+  .mode-grid {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; 
+    max-width: 900px; 
+    width: 100%;
+    justify-items: center;
+  }
+  
+  .mode-card {
+    width: 100%;
+    max-width: 350px;
+    padding: 24px; border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; transition: all 0.3s ease; text-align: left;
+  }
+  .mode-card:hover {
+    background: rgba(196, 77, 255, 0.1);
+    transform: translateY(-5px);
+    border-color: #c44dff;
+    box-shadow: 0 15px 40px rgba(196, 77, 255, 0.2);
+  }
+  .mode-card .emoji { font-size: 44px; margin-bottom: 12px; display: block; }
+  .mode-card .title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .mode-card .desc { font-size: 12px; color: #a0aab5; line-height: 1.5; }
+
+  #lab-ui { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+  #lab-ui.active { display: block; }
+
+  /* CORRECTION DU BUG : Cacher toutes les sections par défaut */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .ui-panel {
+    background: rgba(20, 10, 35, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(196, 77, 255, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+  }
+
+  #top-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px;
+  }
+  #back-btn {
+    padding: 10px 20px; border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white; cursor: pointer; font-weight: 600;
+    font-size: 14px;
+  }
+  #back-btn:hover { background: rgba(255,255,255,0.2); }
+  .mode-title { flex: 1; font-size: 20px; font-weight: 700; text-align: center; }
+
+  .section-title {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    color: #ff6b9d;
+  }
+
+  /* ANATOMIE */
+  .anatomy-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .anatomy-container { grid-template-columns: 1fr; } }
+  
+  .anatomy-side {
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .anatomy-side h3 { font-size: 16px; margin-bottom: 16px; color: #4dc9f6; }
+  .anatomy-side.female h3 { color: #ff6b9d; }
+  
+  .organ-btn {
+    display: block; width: 100%; padding: 10px 14px; margin: 6px 0;
+    border-radius: 8px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); color: #fff;
+    cursor: pointer; text-align: left; font-size: 13px; transition: all 0.2s;
+  }
+  .organ-btn:hover { background: rgba(196, 77, 255, 0.15); border-color: #c44dff; transform: translateX(4px); }
+  .organ-btn.active { background: rgba(196, 77, 255, 0.25); border-color: #c44dff; }
+
+  .organ-info {
+    margin-top: 20px; padding: 16px; background: rgba(196, 77, 255, 0.08);
+    border-left: 4px solid #c44dff; border-radius: 8px; min-height: 100px;
+    font-size: 14px; line-height: 1.6; color: #e0e0e0;
+  }
+  .organ-info b { color: #ff6b9d; }
+
+  /* CYCLE MENSTRUEL */
+  .cycle-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .cycle-container { grid-template-columns: 1fr; } }
+  
+  .cycle-bar { height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; position: relative; margin: 20px 0; overflow: hidden; }
+  .cycle-progress { height: 100%; background: linear-gradient(90deg, #ff6b9d, #c44dff); border-radius: 6px; transition: width 0.5s ease; }
+  .cycle-day-display { text-align: center; font-size: 48px; font-weight: 800; color: #c44dff; margin: 10px 0; }
+  .cycle-phase { text-align: center; font-size: 16px; font-weight: 600; color: #ff6b9d; margin-bottom: 20px; }
+  .cycle-controls { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+  .cycle-btn {
+    padding: 10px 20px; border-radius: 8px; background: rgba(196, 77, 255, 0.2);
+    border: 1px solid #c44dff; color: #fff; cursor: pointer; font-weight: 600; font-size: 13px;
+  }
+  .cycle-btn:hover { background: rgba(196, 77, 255, 0.3); }
+
+  .hormone-chart { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; height: 300px; position: relative; }
+  .hormone-chart h4 { font-size: 14px; color: #4dc9f6; margin-bottom: 12px; }
+  .hormone-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 11px; }
+  .hormone-legend-item { display: flex; align-items: center; gap: 6px; }
+  .hormone-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+  .cycle-info-box {
+    margin-top: 16px; padding: 14px; background: rgba(255, 107, 157, 0.1);
+    border-left: 3px solid #ff6b9d; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #e0e0e0;
+  }
+
+  /* CONTRACEPTION */
+  .method-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .method-card {
+    padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; cursor: pointer; transition: all 0.3s;
+  }
+  .method-card:hover { background: rgba(196, 77, 255, 0.1); border-color: #c44dff; transform: translateY(-3px); }
+  .method-card.selected { background: rgba(196, 77, 255, 0.2); border-color: #c44dff; box-shadow: 0 0 20px rgba(196, 77, 255, 0.3); }
+  .method-card .method-emoji { font-size: 32px; margin-bottom: 8px; }
+  .method-card .method-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .method-card .method-efficacy { font-size: 12px; padding: 3px 8px; border-radius: 10px; display: inline-block; margin-bottom: 8px; }
+  .efficacy-high { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+  .efficacy-med { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+  .method-card .method-desc { font-size: 12px; color: #a0aab5; line-height: 1.5; }
+
+  .method-detail { margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; display: none; }
+  .method-detail.show { display: block; }
+  .method-detail h4 { color: #c44dff; margin-bottom: 12px; font-size: 16px; }
+  .method-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+  .detail-item { padding: 10px; background: rgba(255,255,255,0.04); border-radius: 8px; font-size: 12px; }
+  .detail-item .label { color: #a0aab5; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
+  .detail-item .value { font-weight: 700; color: #fff; }
+
+  /* ITS */
+  .its-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .its-card {
+    padding: 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px; cursor: pointer; transition: all 0.3s;
+  }
+  .its-card:hover { background: rgba(239, 68, 68, 0.15); transform: translateY(-3px); }
+  .its-card .its-name { font-size: 15px; font-weight: 700; color: #ff6b6b; margin-bottom: 6px; }
+  .its-card .its-cause { font-size: 11px; color: #a0aab5; margin-bottom: 8px; }
+  .its-card .its-preview { font-size: 12px; color: #e0e0e0; }
+
+  .its-detail { margin-top: 20px; padding: 20px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ff6b6b; border-radius: 12px; display: none; }
+  .its-detail.show { display: block; }
+  .its-detail h4 { color: #ff6b6b; margin-bottom: 12px; }
+  .its-detail p { font-size: 13px; line-height: 1.6; margin-bottom: 10px; color: #e0e0e0; }
+  .its-detail b { color: #ff6b9d; }
+
+  .prevention-banner {
+    margin-top: 20px; padding: 20px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(77, 201, 246, 0.15));
+    border: 2px solid #10b981; border-radius: 12px; text-align: center;
+  }
+  .prevention-banner h3 { color: #10b981; font-size: 18px; margin-bottom: 10px; }
+  .prevention-banner p { font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+
+  /* CONSENTEMENT */
+  .scenario-card { padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 16px; border-left: 4px solid #c44dff; }
+  .scenario-card .scenario-text { font-size: 14px; line-height: 1.7; color: #e0e0e0; margin-bottom: 16px; font-style: italic; }
+  .scenario-question { font-size: 14px; font-weight: 600; color: #ff6b9d; margin-bottom: 12px; }
+  .scenario-choices { display: flex; flex-direction: column; gap: 8px; }
+  .scenario-choice {
+    padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; cursor: pointer; font-size: 13px; color: #e0e0e0; transition: all 0.2s;
+  }
+  .scenario-choice:hover { background: rgba(196, 77, 255, 0.1); border-color: #c44dff; }
+  .scenario-choice.correct { background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #6ee7b7; }
+  .scenario-choice.wrong { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #fca5a5; }
+  .scenario-choice.disabled { pointer-events: none; opacity: 0.7; }
+  .scenario-feedback { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; display: none; }
+  .scenario-feedback.show { display: block; }
+  .scenario-feedback.good { background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; color: #6ee7b7; }
+  .scenario-feedback.bad { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; color: #fca5a5; }
+
+  /* QUIZ PISA */
+  #quiz-modal {
+    position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
+  }
+  #quiz-modal.visible { display: flex; }
+  .quiz-box {
+    background: rgba(20, 10, 35, 0.98); border: 1px solid rgba(196, 77, 255, 0.3);
+    border-radius: 20px; padding: 28px; max-width: 700px; width: 100%;
+    max-height: 90vh; overflow-y: auto; position: relative;
+  }
+  .quiz-box h2 {
+    font-size: 22px; margin-bottom: 6px; background: linear-gradient(90deg, #ff6b9d, #c44dff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding-right: 30px;
+  }
+  .quiz-progress { display: flex; justify-content: space-between; padding: 8px 12px; margin-bottom: 16px; background: rgba(255,255,255,0.04); border-radius: 10px; font-size: 12px; }
+  .quiz-progress .q-num { color: #ffbe0b; font-weight: 600; }
+  .quiz-progress .q-score { color: #c44dff; font-weight: 600; }
+  .quiz-question { font-size: 15px; line-height: 1.6; margin-bottom: 16px; color: #fff; font-weight: 500; }
+  .quiz-choices { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-choice {
+    padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-size: 13px; line-height: 1.5;
+    color: #e0e0e0; text-align: left; transition: all 0.2s;
+  }
+  .quiz-choice:hover:not(.disabled) { background: rgba(196, 77, 255, 0.1); border-color: #c44dff; }
+  .quiz-choice.correct { background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #6ee7b7; }
+  .quiz-choice.wrong { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #fca5a5; }
+  .quiz-choice.disabled { pointer-events: none; opacity: 0.7; }
+  .quiz-feedback { margin-top: 12px; padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; color: #6ee7b7; }
+  .quiz-feedback.wrong-fb { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; color: #fca5a5; }
+  .quiz-next-btn {
+    margin-top: 14px; width: 100%; padding: 12px; border-radius: 10px;
+    background: linear-gradient(135deg, #c44dff, #ff6b9d); color: white; border: none; font-weight: 600;
+    cursor: pointer; font-size: 13px; display: none;
+  }
+  .quiz-next-btn.show { display: block; }
+  .quiz-result { text-align: center; padding: 20px; }
+  .quiz-result .score-big {
+    font-size: 56px; font-weight: 800; background: linear-gradient(135deg, #ff6b9d, #c44dff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0;
+  }
+  .quiz-result .score-label { font-size: 14px; color: #a0aab5; margin-bottom: 16px; }
+  .quiz-result .score-msg { font-size: 14px; line-height: 1.6; color: #e0e0e0; margin-bottom: 20px; }
+  .quiz-close-btn {
+    padding: 12px 24px; border-radius: 10px; background: linear-gradient(135deg, #c44dff, #ff6b9d);
+    color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px;
+  }
+  .close-modal {
+    position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+    color: white; cursor: pointer; font-size: 16px;
+  }
+  .close-modal:hover { background: rgba(255, 100, 100, 0.3); }
+
+  #quiz-btn-fixed {
+    position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 30px;
+    background: linear-gradient(135deg, #c44dff, #ff6b9d); color: white; border: none; font-weight: 700;
+    cursor: pointer; z-index: 20; box-shadow: 0 5px 20px rgba(196, 77, 255, 0.4); font-size: 14px;
+  }
+  #quiz-btn-fixed:hover { transform: scale(1.05); }
+
+  .feedback-toast {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    padding: 16px 28px; border-radius: 14px; font-size: 15px; font-weight: 600;
+    z-index: 30; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  }
+  .feedback-toast.show { opacity: 1; }
+  .feedback-toast.success { background: rgba(16, 185, 129, 0.95); color: #000; }
+  .feedback-toast.info { background: rgba(196, 77, 255, 0.95); color: #fff; }
+
+  .key-message {
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(196, 77, 255, 0.1));
+    border: 1px solid rgba(196, 77, 255, 0.3); border-radius: 12px; padding: 16px;
+    margin-top: 16px; font-size: 13px; line-height: 1.6; color: #e0e0e0;
+  }
+  .key-message b { color: #ff6b9d; }
+</style>
+</head>
+<body>
+
+<div id="home-screen">
+  <h1>🌸 BioReproLab</h1>
+  <div class="subtitle">Laboratorio Interactivo de Reproducción y Salud Sexual<br>Explora, comprende y toma decisiones informadas.</div>
+  <div class="mode-grid">
+    <div class="mode-card" data-mode="anatomy">
+      <span class="emoji">🔬</span>
+      <div class="title">Anatomía Interactiva</div>
+      <div class="desc">Explora los órganos reproductores masculinos y femeninos</div>
+    </div>
+    <div class="mode-card" data-mode="cycle">
+      <span class="emoji">🔄</span>
+      <div class="title">Ciclo Menstrual</div>
+      <div class="desc">Avanza día a día y observa las hormonas</div>
+    </div>
+    <div class="mode-card" data-mode="contraception">
+      <span class="emoji">💊</span>
+      <div class="title">Métodos Anticonceptivos</div>
+      <div class="desc">Compara eficacia, protección y modo de acción</div>
+    </div>
+    <div class="mode-card" data-mode="its">
+      <span class="emoji">🛡️</span>
+      <div class="title">ITS y Prevención</div>
+      <div class="desc">Conoce las infecciones y cómo protegerte</div>
+    </div>
+    <div class="mode-card" data-mode="consent">
+      <span class="emoji">🤝</span>
+      <div class="title">Consentimiento y Respeto</div>
+      <div class="desc">Aprende a reconocer situaciones saludables</div>
+    </div>
+  </div>
+</div>
+
+<div id="lab-ui">
+  <div id="top-bar" class="ui-panel">
+    <button id="back-btn">← Volver</button>
+    <div class="mode-title" id="mode-title">Modo</div>
+  </div>
+
+  <!-- ANATOMIE -->
+  <div id="anatomy-mode" class="tab-content">
+    <div class="ui-panel">
+      <h2 class="section-title">🔬 Anatomía del Sistema Reproductor</h2>
+      <p style="color:#a0aab5; margin-bottom:20px; font-size:14px;">Haz clic en cada órgano para conocer su función. Comprender tu cuerpo es el primer paso para cuidarlo.</p>
+      <div class="anatomy-container">
+        <div class="anatomy-side female">
+          <h3>👩 Sistema Reproductor Femenino</h3>
+          <button class="organ-btn" data-organ="ovarios-f"> Ovarios</button>
+          <button class="organ-btn" data-organ="trompas-f">🌀 Trompas de Falopio</button>
+          <button class="organ-btn" data-organ="utero-f">🌸 Útero</button>
+          <button class="organ-btn" data-organ="cuello-f"> Cuello uterino</button>
+          <button class="organ-btn" data-organ="vagina-f">🌷 Vagina</button>
+          <button class="organ-btn" data-organ="vulva-f">🌸 Vulva</button>
+        </div>
+        <div class="anatomy-side">
+          <h3>👨 Sistema Reproductor Masculino</h3>
+          <button class="organ-btn" data-organ="testiculos-m">🥜 Testículos</button>
+          <button class="organ-btn" data-organ="epididimo-m">🌀 Epidídimo</button>
+          <button class="organ-btn" data-organ="conductos-m">📏 Conductos deferentes</button>
+          <button class="organ-btn" data-organ="prostata-m">💧 Próstata</button>
+          <button class="organ-btn" data-organ="pene-m">🍆 Pene</button>
+          <button class="organ-btn" data-organ="escroto-m"> Escroto</button>
+        </div>
+      </div>
+      <div class="organ-info" id="organ-info">
+        👆 <b>Haz clic en un órgano</b> para conocer su función y características.
+      </div>
+    </div>
+  </div>
+
+  <!-- CYCLE MENSTRUEL -->
+  <div id="cycle-mode" class="tab-content">
+    <div class="ui-panel">
+      <h2 class="section-title">🔄 El Ciclo Menstrual (28 días)</h2>
+      <p style="color:#a0aab5; margin-bottom:20px; font-size:14px;">Usa los botones para avanzar día a día. Observa cómo cambian las hormonas y qué ocurre en el cuerpo.</p>
+      <div class="cycle-container">
+        <div>
+          <div class="cycle-day-display" id="cycle-day">Día 1</div>
+          <div class="cycle-phase" id="cycle-phase">🩸 Menstruación</div>
+          <div class="cycle-bar">
+            <div class="cycle-progress" id="cycle-progress" style="width: 3.5%;"></div>
+          </div>
+          <div class="cycle-controls">
+            <button class="cycle-btn" id="cycle-prev">◀ Día anterior</button>
+            <button class="cycle-btn" id="cycle-play">▶ Avanzar</button>
+            <button class="cycle-btn" id="cycle-reset">🔄 Reiniciar</button>
+          </div>
+          <div class="cycle-info-box" id="cycle-info">
+            <b>Día 1-5: Menstruación</b><br>
+            El endometrio (capa interna del útero) se desprende porque no hubo fecundación. Sale sangre y tejido por la vagina. Es normal sentir cansancio o cólicos.
+          </div>
+        </div>
+        <div class="hormone-chart">
+          <h4>📊 Niveles hormonales durante el ciclo</h4>
+          <canvas id="hormone-canvas" width="400" height="250"></canvas>
+          <div class="hormone-legend">
+            <div class="hormone-legend-item"><div class="hormone-dot" style="background:#ff6b9d;"></div>Estrógenos</div>
+            <div class="hormone-legend-item"><div class="hormone-dot" style="background:#c44dff;"></div>Progesterona</div>
+            <div class="hormone-legend-item"><div class="hormone-dot" style="background:#4dc9f6;"></div>LH (ovulación)</div>
+            <div class="hormone-legend-item"><div class="hormone-dot" style="background:#10b981;"></div>FSH</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTRACEPTION -->
+  <div id="contraception-mode" class="tab-content">
+    <div class="ui-panel">
+      <h2 class="section-title">💊 Métodos Anticonceptivos</h2>
+      <p style="color:#a0aab5; margin-bottom:20px; font-size:14px;">Haz clic en cada método para ver sus características. Compara eficacia, protección contra ITS y modo de acción.</p>
+      <div class="method-grid" id="method-grid"></div>
+      <div class="method-detail" id="method-detail"></div>
+      <div class="key-message">
+        <b>⚠️ Dato crucial:</b> El <b>preservativo (condón)</b> es el ÚNICO método que protege simultáneamente contra embarazos NO deseados Y contra las Infecciones de Transmisión Sexual (ITS). Todos los demás métodos solo previenen el embarazo.
+      </div>
+    </div>
+  </div>
+
+  <!-- ITS -->
+  <div id="its-mode" class="tab-content">
+    <div class="ui-panel">
+      <h2 class="section-title">🛡️ Infecciones de Transmisión Sexual (ITS)</h2>
+      <p style="color:#a0aab5; margin-bottom:20px; font-size:14px;">Haz clic en cada ITS para conocer sus síntomas, riesgos y tratamiento. La prevención salva vidas.</p>
+      <div class="its-grid" id="its-grid"></div>
+      <div class="its-detail" id="its-detail"></div>
+      <div class="prevention-banner">
+        <h3>🛡️ ¿Cómo protegerte?</h3>
+        <p>✅ Usa <b>preservativo</b> en todas las relaciones sexuales<br>
+        ✅ Hazte <b>pruebas regulares</b> si tienes vida sexual activa<br>
+        ✅ <b>Vacúnate</b> contra el VPH y la hepatitis B<br>
+        ✅ <b>Comunica</b> abiertamente con tu pareja sobre salud sexual<br>
+        ✅ Acude al <b>médico</b> ante cualquier síntoma extraño</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONSENTEMENT -->
+  <div id="consent-mode" class="tab-content">
+    <div class="ui-panel">
+      <h2 class="section-title"> Consentimiento y Relaciones Saludables</h2>
+      <p style="color:#a0aab5; margin-bottom:20px; font-size:14px;">Lee cada situación y elige la respuesta correcta. El consentimiento es la base de cualquier relación respetuosa.</p>
+      <div id="scenarios-container"></div>
+    </div>
+  </div>
+
+  <button id="quiz-btn-fixed" style="display:none;">🧠 Desafío PISA</button>
+</div>
+
+<!-- QUIZ MODAL -->
+<div id="quiz-modal">
+  <div class="quiz-box">
+    <button class="close-modal" id="close-quiz">✕</button>
+    <h2>🏆 Desafío PISA — Salud Sexual</h2>
+    <div id="quiz-content"></div>
+  </div>
+</div>
+
+<div class="feedback-toast" id="feedback-toast"></div>
+
+<script>
+console.log('✅ BioReproLab cargado');
+
+// ============ DONNÉES ============
+const organs = {
+  'ovarios-f': { name: 'Ovarios', desc: 'Producen los <b>óvulos</b> (células reproductivas femeninas) y las hormonas sexuales: <b>estrógenos</b> y <b>progesterona</b>. Cada mes, generalmente un ovario libera un óvulo (ovulación).', func: 'Producción de óvulos y hormonas' },
+  'trompas-f': { name: 'Trompas de Falopio', desc: 'Conductos que conectan los ovarios con el útero. Aquí ocurre la <b>fecundación</b>: el espermatozoide se encuentra con el óvulo. Tienen cilios que mueven el óvulo hacia el útero.', func: 'Transporte del óvulo y fecundación' },
+  'utero-f': { name: 'Útero (matriz)', desc: 'Órgano muscular donde se implanta y desarrolla el <b>embrión</b> si hay fecundación. Su capa interna, el <b>endometrio</b>, se engrosa cada mes y se desprende si no hay embarazo (menstruación).', func: 'Desarrollo del embrión/feto' },
+  'cuello-f': { name: 'Cuello uterino (cérvix)', desc: 'Parte inferior del útero que se abre hacia la vagina. Produce <b>moco cervical</b> que cambia según el ciclo: facilita o bloquea el paso de espermatozoides. Es donde se hace la citología (Papanicolau).', func: 'Comunicación útero-vagina' },
+  'vagina-f': { name: 'Vagina', desc: 'Conducto elástico que conecta el exterior con el útero. Recibe el pene durante el coito, permite la salida de la menstruación y es el canal del parto. Tiene flora bacteriana protectora.', func: 'Relación sexual, menstruación, parto' },
+  'vulva-f': { name: 'Vulva', desc: 'Conjunto de órganos genitales externos femeninos: <b>labios mayores y menores</b>, <b>clítoris</b> (órgano del placer, con miles de terminaciones nerviosas), y abertura de la vagina y uretra.', func: 'Protección y placer sexual' },
+  'testiculos-m': { name: 'Testículos', desc: 'Producen los <b>espermatozoides</b> (células reproductivas masculinas) y la hormona <b>testosterona</b>. Están fuera del cuerpo en el escroto porque necesitan una temperatura menor a la corporal para funcionar.', func: 'Producción de espermatozoides y testosterona' },
+  'epididimo-m': { name: 'Epidídimo', desc: 'Tubo enrollado sobre cada testículo donde los espermatozoides <b>maduran</b> y se almacenan hasta la eyaculación. Tardan unos 70 días en madurar completamente.', func: 'Maduración de espermatozoides' },
+  'conductos-m': { name: 'Conductos deferentes', desc: 'Tubos que transportan los espermatozoides desde el epidídimo hasta la uretra durante la eyaculación. La <b>vasectomía</b> (método anticonceptivo masculino) corta estos conductos.', func: 'Transporte de espermatozoides' },
+  'prostata-m': { name: 'Próstata', desc: 'Glándula que produce el <b>líquido seminal</b>, que nutre y protege los espermatozoides. El semen es la mezcla de espermatozoides + líquidos de la próstata y vesículas seminales.', func: 'Producción de líquido seminal' },
+  'pene-m': { name: 'Pene', desc: 'Órgano sexual masculino. Contiene la <b>uretra</b> (por donde salen orina y semen). Durante la excitación se llena de sangre y se produce la <b>erección</b>, permitiendo el coito.', func: 'Relación sexual y expulsión de semen/orina' },
+  'escroto-m': { name: 'Escroto', desc: 'Bolsa de piel que contiene los testículos. Los <b>mantiene a temperatura adecuada</b> (unos 2°C menos que el cuerpo) contrayéndose o relajándose según el calor.', func: 'Regulación térmica de los testículos' }
+};
+
+const cycleData = [
+  { day: 1, phase: 'Menstruación', info: 'El endometrio se desprende. Sangrado de 3 a 7 días. Los niveles de estrógenos y progesterona están bajos.', hormones: { E: 10, P: 10, LH: 5, FSH: 15 } },
+  { day: 5, phase: 'Menstruación', info: 'Fin del sangrado. El ovario comienza a preparar un nuevo óvulo.', hormones: { E: 20, P: 10, LH: 5, FSH: 20 } },
+  { day: 7, phase: 'Fase folicular', info: 'Un folículo en el ovario madura y produce estrógenos. El endometrio comienza a engrosarse.', hormones: { E: 40, P: 10, LH: 10, FSH: 25 } },
+  { day: 12, phase: 'Fase folicular', info: 'Los estrógenos aumentan mucho. El endometrio se engrosa preparando una "cama" para un posible embrión.', hormones: { E: 80, P: 15, LH: 20, FSH: 20 } },
+  { day: 14, phase: 'OVULACIÓN', info: '¡Pico de LH! El ovario libera el óvulo maduro. Es el día más fértil del ciclo. El óvulo vive 12-24 horas.', hormones: { E: 100, P: 20, LH: 100, FSH: 15 } },
+  { day: 16, phase: 'Fase lútea', info: 'El folículo vacío se transforma en "cuerpo lúteo" y produce progesterona. El endometrio se mantiene grueso.', hormones: { E: 60, P: 60, LH: 10, FSH: 10 } },
+  { day: 21, phase: 'Fase lútea', info: 'Si no hubo fecundación, el cuerpo lúteo comienza a degenerar. Bajan progesterona y estrógenos.', hormones: { E: 40, P: 50, LH: 5, FSH: 5 } },
+  { day: 26, phase: 'Fase premenstrual', info: 'Caen las hormonas. Pueden aparecer síntomas premenstruales: cansancio, cambios de humor, sensibilidad en los senos.', hormones: { E: 20, P: 20, LH: 5, FSH: 5 } },
+  { day: 28, phase: 'Fin del ciclo', info: 'Si no hubo embarazo, comienza una nueva menstruación. El ciclo vuelve a empezar.', hormones: { E: 10, P: 10, LH: 5, FSH: 10 } }
+];
+
+const methods = [
+  { id: 'condon-m', name: 'Preservativo masculino', emoji: '🛡️', efficacy: 98, its: true, type: 'Barrera', desc: 'Funda de látex que cubre el pene. Recoge el semen e impide el contacto directo.', pros: 'Protege contra ITS y embarazo. Sin hormonas. Fácil de usar.', cons: 'Puede romperse si no se usa bien. Hay que usarlo desde el inicio.' },
+  { id: 'condon-f', name: 'Preservativo femenino', emoji: '🛡️', efficacy: 95, its: true, type: 'Barrera', desc: 'Funda que se coloca dentro de la vagina. Cubre el cuello uterino.', pros: 'Protege contra ITS. La mujer tiene el control.', cons: 'Menos conocido. Puede ser difícil de colocar al principio.' },
+  { id: 'pildora', name: 'Píldora anticonceptiva', emoji: '💊', efficacy: 99, its: false, type: 'Hormonal', desc: 'Pastilla diaria con hormonas que impiden la ovulación.', pros: 'Muy eficaz. Regula el ciclo. Reduce cólicos.', cons: 'No protege contra ITS. Hay que tomarla todos los días a la misma hora.' },
+  { id: 'parche', name: 'Parche', emoji: '🩹', efficacy: 99, its: false, type: 'Hormonal', desc: 'Parche adhesivo que se cambia cada semana. Libera hormonas.', pros: 'No hay que acordarse todos los días.', cons: 'No protege contra ITS. Puede irritar la piel.' },
+  { id: 'implante', name: 'Implante subdérmico', emoji: '💉', efficacy: 99, its: false, type: 'Hormonal', desc: 'Pequeña varilla que se coloca bajo la piel del brazo. Dura 3 años.', pros: 'Muy eficaz. Olvidarse no es problema.', cons: 'No protege contra ITS. Requiere procedimiento médico.' },
+  { id: 'diu', name: 'DIU (Dispositivo Intrauterino)', emoji: '🌀', efficacy: 99, its: false, type: 'Dispositivo', desc: 'Pequeño objeto en forma de T que se coloca en el útero. Hay de cobre y hormonal.', pros: 'Dura 3-10 años. Muy eficaz.', cons: 'No protege contra ITS. Colocación médica necesaria.' },
+  { id: 'inyeccion', name: 'Inyección', emoji: '💉', efficacy: 94, its: false, type: 'Hormonal', desc: 'Inyección hormonal cada 1-3 meses.', pros: 'No hay que acordarse todos los días.', cons: 'No protege contra ITS. Puede alterar el ciclo.' },
+  { id: 'abstinencia', name: 'Abstinencia', emoji: '🚫', efficacy: 100, its: true, type: 'Conductual', desc: 'No tener relaciones sexuales con penetración.', pros: '100% eficaz. Sin efectos secundarios.', cons: 'Requiere decisión personal constante.' },
+  { id: 'coito-interrumpido', name: 'Coito interrumpido', emoji: '⚠️', efficacy: 78, its: false, type: 'Conductual', desc: 'Retirar el pene antes de eyacular.', pros: 'Sin costo.', cons: 'MUY poco fiable. El líquido preseminal puede contener espermatozoides. No protege contra ITS.' }
+];
+
+const itsData = [
+  { id: 'vih', name: 'VIH/SIDA', cause: 'Virus (VIH)', preview: 'Ataca el sistema inmunológico', symptoms: 'Puede no haber síntomas durante años. Luego: fiebre, pérdida de peso, infecciones recurrentes.', treatment: 'No hay cura, pero tratamiento antirretroviral permite vida normal. Prevención: preservativo.', severity: 'high' },
+  { id: 'vph', name: 'VPH (Virus del Papiloma Humano)', cause: 'Virus', preview: 'Causa verrugas y puede provocar cáncer', symptoms: 'Verrugas genitales o asintomático. Algunas cepas causan cáncer de cuello uterino.', treatment: 'Vacuna preventiva disponible. Tratamiento de verrugas. Revisiones ginecológicas regulares.', severity: 'high' },
+  { id: 'clamidia', name: 'Clamidia', cause: 'Bacteria', preview: 'Muy común, a menudo sin síntomas', symptoms: 'Frecuentemente asintomática. Ardor al orinar, secreciones anormales.', treatment: 'Curable con antibióticos. Si no se trata: infertilidad.', severity: 'med' },
+  { id: 'gonorrea', name: 'Gonorrea', cause: 'Bacteria', preview: 'Infección bacteriana tratable', symptoms: 'Ardor al orinar, secreciones, dolor pélvico.', treatment: 'Curable con antibióticos. Resistencia creciente a medicamentos.', severity: 'med' },
+  { id: 'herpes', name: 'Herpes genital', cause: 'Virus (VHS-2)', preview: 'Llagas dolorosas recurrentes', symptoms: 'Ampollas y llagas dolorosas en genitales. Brotes recurrentes.', treatment: 'No hay cura definitiva. Antivirales reducen síntomas y contagio.', severity: 'med' },
+  { id: 'sifilis', name: 'Sífilis', cause: 'Bacteria', preview: 'Evoluciona en etapas si no se trata', symptoms: 'Etapa 1: llaga indolora. Etapa 2: erupciones. Etapa 3: daño a órganos.', treatment: 'Curable con penicilina en etapas tempranas.', severity: 'high' }
+];
+
+const scenarios = [
+  {
+    text: 'Ana y Luis llevan 3 meses saliendo. Luis le pide a Ana que tengan relaciones sexuales. Ana no se siente lista y le dice "no, todavía no". Luis insiste diciendo "si me quisieras de verdad, lo harías".',
+    question: '¿Qué está pasando aquí?',
+    choices: [
+      { text: 'Luis solo está siendo persistente, es normal en una relación', correct: false, feedback: ' Incorrecto. Insistir después de un "no" NO es amor, es presión. El amor respeta los límites.' },
+      { text: 'Ana está siendo injusta con Luis', correct: false, feedback: '❌ Incorrecto. Ana tiene todo el derecho de decidir sobre su cuerpo. No le debe a nadie relaciones sexuales.' },
+      { text: 'Luis está ejerciendo coerción sexual. El consentimiento debe ser libre, sin presión.', correct: true, feedback: '✅ Correcto. El consentimiento debe ser LIBRE, ENTUSIASTA y REVOCABLE. Presionar, chantajear o insistir invalida el consentimiento.' }
+    ]
+  },
+  {
+    text: 'María y Carlos van a tener su primera relación sexual. Carlos dice "no necesitamos condón, yo me retiro antes". María no está segura.',
+    question: '¿Qué debería hacer María?',
+    choices: [
+      { text: 'Aceptar, porque Carlos parece seguro de sí mismo', correct: false, feedback: '❌ Incorrecto. El coito interrumpido tiene 22% de fallo. El líquido preseminal puede contener espermatozoides y transmitir ITS.' },
+      { text: 'Insistir en usar preservativo o no tener la relación. Su salud es primero.', correct: true, feedback: '✅ Correcto. María tiene derecho a exigir protección. Una pareja respetuosa acepta usar condón sin discutir.' },
+      { text: 'Usar la píldora del día después después', correct: false, feedback: ' Incorrecto. La píldora del día después es de EMERGENCIA, no un método regular. No protege contra ITS.' }
+    ]
+  },
+  {
+    text: 'Pedro comparte fotos íntimas de su ex novia con sus amigos "como broma". La chica se entera y sufre mucho.',
+    question: '¿Cómo se llama esto y qué consecuencias tiene?',
+    choices: [
+      { text: 'Es solo una broma, no es grave', correct: false, feedback: '❌ Incorrecto. Esto es un delito en muchos países (pornovenganza) y causa daño psicológico severo.' },
+      { text: 'Es violencia digital y violación de la privacidad. Es un delito.', correct: true, feedback: '✅ Correcto. Compartir imágenes íntimas sin consentimiento es VIOLENCIA DIGITAL. Puede tener consecuencias legales y siempre causa daño emocional.' },
+      { text: 'Ella debió pensar antes de tomar las fotos', correct: false, feedback: '❌ Incorrecto. Esto es "culpar a la víctima". La responsabilidad es SIEMPRE de quien comparte sin permiso.' }
+    ]
+  },
+  {
+    text: 'Lucía tiene 15 años y su novio de 17 le pide tener relaciones. Ella dice que sí, pero no le cuenta a nadie y no usa protección.',
+    question: '¿Qué riesgos hay en esta situación?',
+    choices: [
+      { text: 'Ninguno, si ambos están de acuerdo', correct: false, feedback: ' Incorrecto. A los 15 años hay riesgos de salud (embarazo, ITS) y posibles implicaciones legales según la edad de consentimiento.' },
+      { text: 'Riesgo de embarazo no deseado, ITS, y posible situación legal según la edad de consentimiento', correct: true, feedback: '✅ Correcto. Además de los riesgos de salud, en muchos países las relaciones con menores de cierta edad son delito, aunque haya "consentimiento".' },
+      { text: 'Solo riesgo de embarazo, las ITS no afectan a jóvenes', correct: false, feedback: ' Incorrecto. Las ITS afectan a personas de TODAS las edades. Los jóvenes son particularmente vulnerables.' }
+    ]
+  }
+];
+
+const quizQuestions = [
+  {
+    q: "¿Cuál es el ÚNICO método anticonceptivo que protege contra embarazos Y contra ITS?",
+    choices: ["La píldora", "El DIU", "El preservativo (condón)", "El implante"],
+    correct: 2,
+    explanation: "El preservativo es el único método de BARRERA que impide el contacto directo de fluidos, protegiendo contra ambas cosas. Los métodos hormonales solo previenen el embarazo."
+  },
+  {
+    q: "¿En qué día del ciclo menstrual de 28 días ocurre generalmente la ovulación?",
+    choices: ["Día 1", "Día 7", "Día 14", "Día 28"],
+    correct: 2,
+    explanation: "La ovulación ocurre aproximadamente a mitad del ciclo, alrededor del día 14. Es el momento de mayor fertilidad. El óvulo vive solo 12-24 horas."
+  },
+  {
+    q: "¿Qué hormona tiene un pico que provoca la ovulación?",
+    choices: ["Estrógeno", "Progesterona", "LH (hormona luteinizante)", "Testosterona"],
+    correct: 2,
+    explanation: "El pico de LH (hormona luteinizante) alrededor del día 14 desencadena la liberación del óvulo. Las pruebas de ovulación detectan este pico."
+  },
+  {
+    q: "¿Cuál es la eficacia del coito interrumpido (retirarse antes de eyacular)?",
+    choices: ["99%", "95%", "78%", "100%"],
+    correct: 2,
+    explanation: "Solo 78% de eficacia. El líquido preseminal puede contener espermatozoides, y es muy difícil controlar el momento exacto. NO es un método fiable."
+  },
+  {
+    q: "¿Qué ITS puede causar cáncer de cuello uterino?",
+    choices: ["Clamidia", "VPH (Virus del Papiloma Humano)", "Gonorrea", "Herpes"],
+    correct: 1,
+    explanation: "Algunas cepas del VPH (especialmente 16 y 18) pueden causar cáncer de cuello uterino. Existe VACUNA preventiva muy eficaz, recomendada antes de iniciar vida sexual."
+  },
+  {
+    q: "¿Qué es el consentimiento sexual?",
+    choices: [
+      "No decir que no",
+      "Un acuerdo libre, entusiasta, informado y revocable entre personas capaces",
+      "Estar en una relación de pareja",
+      "Tener más de 18 años"
+    ],
+    correct: 1,
+    explanation: "El consentimiento debe ser: LIBRE (sin presión), ENTUSIASTA (con ganas), INFORMADO (sabiendo qué implica), y REVOCABLE (se puede cambiar de opinión en cualquier momento)."
+  },
+  {
+    q: "¿Dónde ocurre la fecundación normalmente?",
+    choices: ["En el útero", "En la vagina", "En las trompas de Falopio", "En el ovario"],
+    correct: 2,
+    explanation: "La fecundación ocurre en las trompas de Falopio. El espermatozoide nada desde la vagina, pasa por el útero y encuentra al óvulo en la trompa."
+  },
+  {
+    q: "¿Por qué los testículos están fuera del cuerpo en el escroto?",
+    choices: ["Por protección", "Porque necesitan estar 2°C más fríos que el cuerpo para producir espermatozoides", "Por estética", "Porque así pesan menos"],
+    correct: 1,
+    explanation: "Los espermatozoides necesitan una temperatura de unos 35°C (2°C menos que la corporal). Por eso el escroto se contrae con el frío y se relaja con el calor."
+  }
+];
+
+// ============ ÉTAT ============
+let currentMode = 'anatomy';
+let currentCycleDay = 1;
+let cycleInterval = null;
+
+// ============ NAVEGATION ============
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const mode = card.dataset.mode;
+    document.getElementById('home-screen').classList.add('hidden');
+    document.getElementById('lab-ui').classList.add('active');
+    setMode(mode);
+  });
+});
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('home-screen').classList.remove('hidden');
+  document.getElementById('lab-ui').classList.remove('active');
+  document.getElementById('quiz-modal').classList.remove('visible');
+  document.getElementById('quiz-btn-fixed').style.display = 'none';
+  if (cycleInterval) clearInterval(cycleInterval);
+});
+
+document.getElementById('quiz-btn-fixed').addEventListener('click', startQuiz);
+document.getElementById('close-quiz').addEventListener('click', () => document.getElementById('quiz-modal').classList.remove('visible'));
+
+function setMode(mode) {
+  currentMode = mode;
+  
+  // Cacher toutes les sections
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  // Afficher uniquement la section demandée
+  document.getElementById(mode + '-mode').classList.add('active');
+  
+  const titles = {
+    anatomy: '🔬 Anatomía Interactiva',
+    cycle: '🔄 Ciclo Menstrual',
+    contraception: '💊 Métodos Anticonceptivos',
+    its: '🛡️ ITS y Prevención',
+    consent: ' Consentimiento y Respeto'
+  };
+  document.getElementById('mode-title').textContent = titles[mode];
+  
+  // Le bouton flottant est toujours visible dans les 5 modes
+  document.getElementById('quiz-btn-fixed').style.display = 'block';
+  
+  if (mode === 'cycle') {
+    currentCycleDay = 1;
+    updateCycle();
+    drawHormoneChart();
+  }
+  if (mode === 'contraception') renderMethods();
+  if (mode === 'its') renderITS();
+  if (mode === 'consent') renderScenarios();
+}
+
+// ============ ANATOMIE ============
+document.querySelectorAll('.organ-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.organ-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const organ = organs[btn.dataset.organ];
+    document.getElementById('organ-info').innerHTML = `
+      <b style="font-size:16px; color:#ff6b9d;">${organ.name}</b><br>
+      <b style="color:#c44dff;">Función:</b> ${organ.func}<br><br>
+      ${organ.desc}
+    `;
+  });
+});
+
+// ============ CYCLE MENSTRUEL ============
+function getCyclePhaseInfo(day) {
+  let closest = cycleData[0];
+  for (let i = cycleData.length - 1; i >= 0; i--) {
+    if (day >= cycleData[i].day) { closest = cycleData[i]; break; }
+  }
+  return closest;
+}
+
+function updateCycle() {
+  const info = getCyclePhaseInfo(currentCycleDay);
+  document.getElementById('cycle-day').textContent = `Día ${currentCycleDay}`;
+  document.getElementById('cycle-phase').textContent = info.phase.includes('OVUL') ? '🥚 ' + info.phase : info.phase;
+  document.getElementById('cycle-progress').style.width = (currentCycleDay / 28 * 100) + '%';
+  document.getElementById('cycle-info').innerHTML = `<b>Día ${currentCycleDay}: ${info.phase}</b><br>${info.info}`;
+  drawHormoneChart();
+}
+
+document.getElementById('cycle-prev').addEventListener('click', () => {
+  currentCycleDay = currentCycleDay > 1 ? currentCycleDay - 1 : 28;
+  updateCycle();
+});
+
+document.getElementById('cycle-play').addEventListener('click', () => {
+  if (cycleInterval) {
+    clearInterval(cycleInterval);
+    cycleInterval = null;
+    document.getElementById('cycle-play').textContent = '▶ Avanzar';
+  } else {
+    cycleInterval = setInterval(() => {
+      currentCycleDay++;
+      if (currentCycleDay > 28) {
+        currentCycleDay = 1;
+        clearInterval(cycleInterval);
+        cycleInterval = null;
+        document.getElementById('cycle-play').textContent = '▶ Avanzar';
+      }
+      updateCycle();
+    }, 800);
+    document.getElementById('cycle-play').textContent = '⏸ Pausar';
+  }
+});
+
+document.getElementById('cycle-reset').addEventListener('click', () => {
+  currentCycleDay = 1;
+  if (cycleInterval) { clearInterval(cycleInterval); cycleInterval = null; document.getElementById('cycle-play').textContent = '▶ Avanzar'; }
+  updateCycle();
+});
+
+function drawHormoneChart() {
+  const canvas = document.getElementById('hormone-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = 20 + (H - 40) * i / 4;
+    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(W - 20, y); ctx.stroke();
+  }
+  
+  ctx.fillStyle = '#a0aab5';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  for (let d = 1; d <= 28; d += 7) {
+    const x = 40 + (W - 60) * (d - 1) / 27;
+    ctx.fillText('D' + d, x, H - 5);
+  }
+  
+  const currentX = 40 + (W - 60) * (currentCycleDay - 1) / 27;
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(currentX, 20); ctx.lineTo(currentX, H - 20); ctx.stroke();
+  ctx.setLineDash([]);
+  
+  const hormones = [
+    { key: 'E', color: '#ff6b9d', data: [10, 20, 40, 80, 100, 60, 40, 20, 10] },
+    { key: 'P', color: '#c44dff', data: [10, 10, 10, 15, 20, 60, 50, 20, 10] },
+    { key: 'LH', color: '#4dc9f6', data: [5, 5, 10, 20, 100, 10, 5, 5, 5] },
+    { key: 'FSH', color: '#10b981', data: [15, 20, 25, 20, 15, 10, 10, 5, 10] }
+  ];
+  
+  const days = [1, 5, 7, 12, 14, 16, 21, 26, 28];
+  
+  hormones.forEach(h => {
+    ctx.strokeStyle = h.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    h.data.forEach((val, i) => {
+      const x = 40 + (W - 60) * (days[i] - 1) / 27;
+      const y = 20 + (H - 40) * (1 - val / 100);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+}
+
+// ============ CONTRACEPTION ============
+function renderMethods() {
+  const grid = document.getElementById('method-grid');
+  grid.innerHTML = '';
+  methods.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'method-card';
+    card.innerHTML = `
+      <div class="method-emoji">${m.emoji}</div>
+      <div class="method-name">${m.name}</div>
+      <span class="method-efficacy ${m.efficacy >= 95 ? 'efficacy-high' : 'efficacy-med'}">${m.efficacy}% eficacia</span>
+      ${m.its ? '<span class="method-efficacy efficacy-high" style="margin-left:6px;">🛡️ Anti-ITS</span>' : ''}
+      <div class="method-desc">${m.desc}</div>
+    `;
+    card.addEventListener('click', function() { showMethodDetail(m, this); });
+    grid.appendChild(card);
+  });
+}
+
+function showMethodDetail(m, element) {
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+  element.classList.add('selected');
+  
+  const detail = document.getElementById('method-detail');
+  detail.className = 'method-detail show';
+  detail.innerHTML = `
+    <h4>${m.emoji} ${m.name}</h4>
+    <p style="color:#e0e0e0; font-size:14px; line-height:1.6;">${m.desc}</p>
+    <div class="method-detail-grid">
+      <div class="detail-item"><div class="label">Eficacia</div><div class="value">${m.efficacy}%</div></div>
+      <div class="detail-item"><div class="label">Tipo</div><div class="value">${m.type}</div></div>
+      <div class="detail-item"><div class="label">Protege contra ITS</div><div class="value" style="color:${m.its ? '#10b981' : '#ef4444'};">${m.its ? '✅ SÍ' : '❌ NO'}</div></div>
+      <div class="detail-item"><div class="label">Ventajas</div><div class="value" style="font-size:11px;">${m.pros}</div></div>
+      <div class="detail-item"><div class="label">Desventajas</div><div class="value" style="font-size:11px;">${m.cons}</div></div>
+    </div>
+  `;
+}
+
+// ============ ITS ============
+function renderITS() {
+  const grid = document.getElementById('its-grid');
+  grid.innerHTML = '';
+  itsData.forEach(its => {
+    const card = document.createElement('div');
+    card.className = 'its-card';
+    card.innerHTML = `
+      <div class="its-name">${its.name}</div>
+      <div class="its-cause">Causa: ${its.cause}</div>
+      <div class="its-preview">${its.preview}</div>
+    `;
+    card.addEventListener('click', () => showITSDetail(its));
+    grid.appendChild(card);
+  });
+}
+
+function showITSDetail(its) {
+  const detail = document.getElementById('its-detail');
+  detail.className = 'its-detail show';
+  detail.innerHTML = `
+    <h4>🦠 ${its.name}</h4>
+    <p><b>Causa:</b> ${its.cause}</p>
+    <p><b>Síntomas:</b> ${its.symptoms}</p>
+    <p><b>Tratamiento y prevención:</b> ${its.treatment}</p>
+  `;
+}
+
+// ============ CONSENTEMENT ============
+function renderScenarios() {
+  const container = document.getElementById('scenarios-container');
+  container.innerHTML = '';
+  scenarios.forEach((s, idx) => {
+    const card = document.createElement('div');
+    card.className = 'scenario-card';
+    card.innerHTML = `
+      <div class="scenario-text">"${s.text}"</div>
+      <div class="scenario-question">${s.question}</div>
+      <div class="scenario-choices" id="scenario-${idx}">
+        ${s.choices.map((c, i) => `<div class="scenario-choice" data-scenario="${idx}" data-choice="${i}">${c.text}</div>`).join('')}
+      </div>
+      <div class="scenario-feedback" id="feedback-${idx}"></div>
+    `;
+    container.appendChild(card);
+  });
+  
+  document.querySelectorAll('.scenario-choice').forEach(choice => {
+    choice.addEventListener('click', () => {
+      const sIdx = parseInt(choice.dataset.scenario);
+      const cIdx = parseInt(choice.dataset.choice);
+      const scenario = scenarios[sIdx];
+      const choiceData = scenario.choices[cIdx];
+      const feedback = document.getElementById(`feedback-${sIdx}`);
+      
+      document.querySelectorAll(`#scenario-${sIdx} .scenario-choice`).forEach(c => {
+        c.classList.add('disabled');
+        if (scenarios[sIdx].choices[parseInt(c.dataset.choice)].correct) c.classList.add('correct');
+      });
+      
+      if (!choiceData.correct) choice.classList.add('wrong');
+      
+      feedback.innerHTML = choiceData.feedback;
+      feedback.className = 'scenario-feedback show ' + (choiceData.correct ? 'good' : 'bad');
+    });
+  });
+}
+
+// ============ QUIZ PISA ============
+let quizState = { currentQ: 0, score: 0, answered: false };
+
+function startQuiz() {
+  quizState = { currentQ: 0, score: 0, answered: false };
+  document.getElementById('quiz-modal').classList.add('visible');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = quizQuestions[quizState.currentQ];
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-progress">
+      <span class="q-num">Pregunta ${quizState.currentQ + 1} / ${quizQuestions.length}</span>
+      <span class="q-score">Puntuación: ${quizState.score} / ${quizQuestions.length}</span>
+    </div>
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-choices">
+      ${q.choices.map((c, i) => `<button class="quiz-choice" data-idx="${i}">${c}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <button class="quiz-next-btn" id="quiz-next-btn">${quizState.currentQ < quizQuestions.length - 1 ? 'Siguiente pregunta →' : 'Ver resultado final '}</button>
+  `;
+  
+  document.querySelectorAll('.quiz-choice').forEach(btn => {
+    btn.addEventListener('click', () => handleQuizAnswer(parseInt(btn.dataset.idx)));
+  });
+  
+  document.getElementById('quiz-next-btn').addEventListener('click', () => {
+    if (quizState.currentQ < quizQuestions.length - 1) {
+      quizState.currentQ++;
+      quizState.answered = false;
+      renderQuizQuestion();
+    } else {
+      showQuizResult();
+    }
+  });
+}
+
+function handleQuizAnswer(idx) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+  
+  const q = quizQuestions[quizState.currentQ];
+  document.querySelectorAll('.quiz-choice').forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === idx && i !== q.correct) btn.classList.add('wrong');
+  });
+  
+  const fb = document.getElementById('quiz-feedback');
+  if (idx === q.correct) {
+    quizState.score++;
+    fb.className = 'quiz-feedback show correct-fb';
+    fb.innerHTML = `✅ <b>¡Correcto!</b> ${q.explanation}`;
+  } else {
+    fb.className = 'quiz-feedback show wrong-fb';
+    fb.innerHTML = `❌ <b>Incorrecto.</b> ${q.explanation}`;
+  }
+  
+  document.getElementById('quiz-next-btn').classList.add('show');
+}
+
+function showQuizResult() {
+  const total = quizQuestions.length;
+  const percent = Math.round((quizState.score / total) * 100);
+  let msg = '';
+  if (percent === 100) msg = '🏆 <b>¡Excelente!</b> Tienes un conocimiento sólido sobre salud sexual y reproductiva.';
+  else if (percent >= 75) msg = '🌟 <b>¡Muy bien!</b> Buen dominio, repasa las preguntas falladas.';
+  else if (percent >= 50) msg = '👍 <b>Aprobado.</b> Pero es importante que repases estos temas, son cruciales para tu salud.';
+  else msg = '📚 <b>Necesitas repasar.</b> Vuelve a explorar las secciones del laboratorio. Tu salud es importante.';
+  
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-result">
+      <div style="font-size: 64px;">${percent === 100 ? '🏆' : percent >= 75 ? '🌟' : percent >= 50 ? '👍' : '📚'}</div>
+      <div class="score-big">${quizState.score} / ${total}</div>
+      <div class="score-label">${percent}% de aciertos</div>
+      <div class="score-msg">${msg}</div>
+      <button class="quiz-close-btn" id="quiz-close-btn-final">Cerrar</button>
+    </div>
+  `;
+  
+  document.getElementById('quiz-close-btn-final').addEventListener('click', () => {
+    document.getElementById('quiz-modal').classList.remove('visible');
+  });
+}
+
+console.log('✅ BioReproLab listo y funcional');
+</script>
+</body>
+</html>

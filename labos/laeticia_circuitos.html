@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Circuitos Eléctricos</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+    --accent-yellow: #fbbf24;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-yellow), var(--accent-orange));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .mode-switch {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .mode-btn {
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .mode-btn:hover { background: rgba(255,255,255,0.08); }
+  .mode-btn.active {
+    background: rgba(251,191,36,0.15);
+    border-color: var(--accent-yellow);
+    color: var(--accent-yellow);
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-yellow); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-yellow); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+  .unit {
+    font-size: 13px; color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 900px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box.analogy h3 { color: var(--accent-purple); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ Laboratorio: Circuitos Eléctricos</h1>
+  <div class="subtitle">Compara circuitos en serie y en paralelo. ¡Observa qué pasa cuando se funde una bombilla!</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="mode-switch">
+          <button class="mode-btn active" id="btn-serie" onclick="setModo('serie')">🔗 En Serie</button>
+          <button class="mode-btn" id="btn-paralelo" onclick="setModo('paralelo')">🔀 En Paralelo</button>
+        </div>
+        <div class="control-group">
+          <label>Voltaje de la batería <b>V</b> <span id="val-v">9 V</span></label>
+          <input type="range" id="range-v" min="1" max="12" step="1" value="9">
+        </div>
+        <div class="control-group">
+          <label>Bombillas encendidas</label>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="mode-btn" id="bulb1" onclick="toggleBulb(0)" style="flex:1;">💡 1</button>
+            <button class="mode-btn" id="bulb2" onclick="toggleBulb(1)" style="flex:1;">💡 2</button>
+            <button class="mode-btn" id="bulb3" onclick="toggleBulb(2)" style="flex:1;">💡 3</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Tipo de circuito</div>
+        <span class="result-big" id="step-tipo">Serie</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Resistencia total</div>
+        <div class="formula" id="step-r-formula">—</div>
+        <span class="result-big" id="step-r">—</span>
+        <span class="unit" id="step-r-unit"></span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Intensidad de corriente (Ley de Ohm: I = V/R)</div>
+        <div class="formula" id="step-i-formula">—</div>
+        <span class="result-big" id="step-i">—</span>
+        <span class="unit" id="step-i-unit"></span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : ¿Qué pasa si se funde una bombilla?</div>
+        <div id="step-fusible" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box analogy">
+      <h3>🚰 LA ANALOGÍA DEL AGUA</h3>
+      <p>Imagina un circuito como un <b>tubo de agua</b>:</p>
+      <p>💧 <b>Voltaje (V)</b>: es la <b>presión</b> del agua. Se mide en <b>Volts (V)</b>.</p>
+      <p>🌊 <b>Intensidad (I)</b>: es el <b>caudal</b> (cuánta agua pasa por segundo). Se mide en <b>Ampères (A)</b>.</p>
+      <p>🚧 <b>Resistencia (R)</b>: es el <b>estrechamiento del tubo</b>. Se mide en <b>Ohms (Ω)</b>.</p>
+    </div>
+
+    <div class="info-box materials">
+      <h3>⚡ SERIE vs PARALELO</h3>
+      <p><b>En serie:</b> la corriente pasa por un solo camino. Si una bombilla se funde, todas se apagan.</p>
+      <p><b>En paralelo:</b> la corriente se divide en varios caminos. Si una bombilla se funde, las demás siguen encendidas.</p>
+      <p>Por eso las luces de tu casa están en <b>paralelo</b>.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 LEY DE OHM</h3>
+      <p><b>V = I × R</b></p>
+      <p>El voltaje (V) es igual a la intensidad (I) multiplicada por la resistencia (R).</p>
+      <p><b>En serie:</b> R_total = R₁ + R₂ + R₃</p>
+      <p><b>En paralelo:</b> 1/R_total = 1/R₁ + 1/R₂ + 1/R₃</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> En serie, si una bombilla se rompe, el circuito se abre y todas se apagan. En paralelo, cada bombilla tiene su propio camino.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let modo = 'serie';
+let voltaje = 9;
+let bombillas = [true, true, true];
+let bombillasEffectives = [true, true, true];
+
+document.getElementById('range-v').addEventListener('input', (e) => {
+  voltaje = parseInt(e.target.value);
+  document.getElementById('val-v').textContent = voltaje + ' V';
+  update();
+});
+
+function setModo(m) {
+  modo = m;
+  document.getElementById('btn-serie').classList.toggle('active', m === 'serie');
+  document.getElementById('btn-paralelo').classList.toggle('active', m === 'paralelo');
+  update();
+}
+
+function toggleBulb(i) {
+  bombillas[i] = !bombillas[i];
+  document.getElementById(`bulb${i+1}`).classList.toggle('active', bombillas[i]);
+  update();
+}
+
+function drawCircuit() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // Batterie
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(cx - 40, cy + 110, 80, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${voltaje} V`, cx, cy + 125);
+
+  if (modo === 'serie') {
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.rect(cx - 150, cy - 100, 300, 200);
+    ctx.stroke();
+    
+    const posX = [cx - 100, cx, cx + 100];
+    posX.forEach((x, i) => {
+      const isOn = bombillasEffectives[i];
+      
+      ctx.fillStyle = isOn ? '#fbbf24' : '#64748b';
+      ctx.beginPath();
+      ctx.arc(x, cy - 100, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      
+      if (isOn) {
+        ctx.strokeStyle = 'rgba(251,191,36,0.5)';
+        ctx.lineWidth = 2;
+        for (let j = 0; j < 8; j++) {
+          const angle = (j / 8) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(angle) * 25, cy - 100 + Math.sin(angle) * 25);
+          ctx.lineTo(x + Math.cos(angle) * 35, cy - 100 + Math.sin(angle) * 35);
+          ctx.stroke();
+        }
+      }
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(`L${i+1}`, x, cy - 100);
+    });
+  } else {
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.rect(cx - 150, cy - 100, 300, 200);
+    ctx.stroke();
+    
+    const posX = [cx - 100, cx, cx + 100];
+    posX.forEach((x, i) => {
+      ctx.beginPath();
+      ctx.moveTo(x, cy - 100);
+      ctx.lineTo(x, cy + 100);
+      ctx.stroke();
+      
+      const isOn = bombillasEffectives[i];
+      
+      ctx.fillStyle = isOn ? '#fbbf24' : '#64748b';
+      ctx.beginPath();
+      ctx.arc(x, cy, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      
+      if (isOn) {
+        ctx.strokeStyle = 'rgba(251,191,36,0.5)';
+        ctx.lineWidth = 2;
+        for (let j = 0; j < 8; j++) {
+          const angle = (j / 8) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(angle) * 25, cy + Math.sin(angle) * 25);
+          ctx.lineTo(x + Math.cos(angle) * 35, cy + Math.sin(angle) * 35);
+          ctx.stroke();
+        }
+      }
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(`L${i+1}`, x, cy);
+    });
+  }
+
+  const currentFlows = modo === 'serie' 
+    ? bombillasEffectives.every(b => b) 
+    : bombillasEffectives.some(b => b);
+
+  if (currentFlows) {
+    const speed = Date.now() / 200;
+    const offset = Math.sin(speed) * 5;
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('⚡ Corriente circula', cx, cy + 145 + offset);
+  } else {
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('⛔ Sin corriente', cx, cy + 145);
+  }
+}
+
+function update() {
+  const R_bulb = 10; // Ohms par bombille
+  const allOn = bombillas.every(b => b);
+  
+  if (modo === 'serie') {
+    const circuitOpen = !allOn;
+    bombillasEffectives = bombillas.map(() => !circuitOpen);
+  } else {
+    bombillasEffectives = [...bombillas];
+  }
+  
+  let R_total, I_total, explicacion;
+
+  if (modo === 'serie') {
+    if (!allOn) {
+      R_total = Infinity;
+      I_total = 0;
+      explicacion = 'Una bombilla está fundida. Como el circuito es <b>en serie</b>, <b style="color:#ef4444;">el circuito se abre y TODAS las bombillas se apagan</b>. La corriente no puede pasar.';
+    } else {
+      R_total = 3 * R_bulb;
+      I_total = voltaje / R_total;
+      explicacion = 'Todas las bombillas están encendidas. La corriente pasa por todas.';
+    }
+    document.getElementById('step-r-formula').innerHTML = 
+      `R_total = 10 Ω + 10 Ω + 10 Ω = ${allOn ? R_total : '∞'} Ω`;
+  } else {
+    const effectiveCount = bombillasEffectives.filter(b => b).length;
+    if (effectiveCount === 0) {
+      R_total = Infinity;
+      I_total = 0;
+      explicacion = 'No hay bombillas encendidas. El circuito está abierto.';
+    } else {
+      R_total = R_bulb / effectiveCount;
+      I_total = voltaje / R_total;
+      explicacion = `En <b>paralelo</b>, cada bombilla tiene su propio camino. Si una se funde, <b style="color:#22c55e;">las demás siguen encendidas</b>. La corriente se reparte entre las que quedan.`;
+    }
+    document.getElementById('step-r-formula').innerHTML = 
+      `1/R_total = ${effectiveCount}/10 Ω → R_total = ${effectiveCount === 0 ? '∞' : R_total.toFixed(2)} Ω`;
+  }
+
+  document.getElementById('step-tipo').textContent = modo === 'serie' ? 'Serie' : 'Paralelo';
+  document.getElementById('step-r').textContent = R_total === Infinity ? '∞' : R_total.toFixed(2);
+  document.getElementById('step-r-unit').textContent = 'Ω';
+  
+  document.getElementById('step-i-formula').innerHTML = 
+    `I = ${voltaje} V / ${R_total === Infinity ? '∞' : R_total.toFixed(2)} Ω`;
+  document.getElementById('step-i').textContent = I_total.toFixed(3);
+  document.getElementById('step-i-unit').textContent = 'A';
+  
+  document.getElementById('step-fusible').innerHTML = explicacion;
+
+  drawCircuit();
+}
+
+function animate() {
+  const currentFlows = modo === 'serie' 
+    ? bombillasEffectives.every(b => b) 
+    : bombillasEffectives.some(b => b);
+  if (currentFlows) {
+    drawCircuit();
+  }
+  requestAnimationFrame(animate);
+}
+
+animate();
+update();
+</script>
+</body>
+</html>

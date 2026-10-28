@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: El Círculo</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-orange));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-pink); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-pink); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⭕ Laboratorio: El Círculo y sus Elementos</h1>
+  <div class="subtitle">Ajusta el radio y observa cómo cambian el diámetro, la circunferencia y el área.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Radio <b>r</b> <span id="val-r">5</span></label>
+          <input type="range" id="range-r" min="1" max="15" step="0.5" value="5">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Radio</div>
+        <span class="result-big" id="step-r">5.0</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Diámetro (d = 2r)</div>
+        <div class="formula" id="step-d">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Circunferencia (C = 2πr)</div>
+        <div class="formula" id="step-c">—</div>
+        <span class="result-big" id="step-c-result">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Área (A = πr²)</div>
+        <div class="formula" id="step-a">—</div>
+        <span class="result-big" id="step-a-result">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>⭕ ¿QUÉ ES EL CÍRCULO?</h3>
+      <p>El <b>círculo</b> es el conjunto de puntos que están a la misma distancia (el <b>radio</b>) de un punto central.</p>
+      <p>La <b>circunferencia</b> es el borde del círculo. El <b>diámetro</b> es el doble del radio.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>El círculo está en todas partes: en las ruedas, en los relojes, en las órbitas de los planetas y en las señales de tráfico.</p>
+      <p><b>Ejemplo real:</b> Si el radio de una rueda de bicicleta es 35 cm, su circunferencia es 2π(35) ≈ 220 cm. Eso significa que cada vuelta completa recorre 2.2 metros.</p>
+      <div class="highlight">
+        <b>Dato curioso:</b> Los antiguos egipcios ya usaban una aproximación de π (3.16) hace 4000 años para construir sus templos circulares.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let r = 5;
+
+document.getElementById('range-r').addEventListener('input', (e) => {
+  r = parseFloat(e.target.value);
+  document.getElementById('val-r').textContent = r.toFixed(1);
+  update();
+});
+
+function drawCircle() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const cy = H / 2;
+  const scale = 12; // 1 unité = 12 pixels
+  const pxR = r * scale;
+
+  // Grille de fond
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 30) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 30) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Cercle (surface)
+  ctx.fillStyle = 'rgba(244,114,182,0.1)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, pxR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Circunferencia (borde)
+  ctx.strokeStyle = '#f472b6';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pxR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Diamètre
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(cx - pxR, cy);
+  ctx.lineTo(cx + pxR, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Radio
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + pxR, cy);
+  ctx.stroke();
+
+  // Centro
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Labels
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`r = ${r.toFixed(1)}`, cx + pxR / 2, cy - 10);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillText(`d = ${(2*r).toFixed(1)}`, cx, cy + 25);
+}
+
+function update() {
+  const d = 2 * r;
+  const c = 2 * Math.PI * r;
+  const a = Math.PI * r * r;
+
+  document.getElementById('step-r').textContent = `${r.toFixed(1)} cm`;
+
+  document.getElementById('step-d').textContent = `d = 2 × ${r.toFixed(1)} = ${d.toFixed(1)} cm`;
+
+  document.getElementById('step-c').innerHTML = 
+    `C = 2 × π × ${r.toFixed(1)}<br>` +
+    `C = 2 × 3.1416 × ${r.toFixed(1)}`;
+  document.getElementById('step-c-result').textContent = `${c.toFixed(2)} cm`;
+
+  document.getElementById('step-a').innerHTML = 
+    `A = π × (${r.toFixed(1)})²<br>` +
+    `A = 3.1416 × ${(r*r).toFixed(2)}`;
+  document.getElementById('step-a-result').textContent = `${a.toFixed(2)} cm²`;
+
+  drawCircle();
+}
+
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,1264 @@
+{
+  "parcours": [
+    {
+      "id": "maryse_ecuaciones_cuadraticas",
+      "target_user": "Maryse",
+      "field": "ecuaciones_cuadraticas",
+      "title": "Resolver ecuaciones cuadráticas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Las ecuaciones cuadráticas permiten calcular la trayectoria de un balón de fútbol, el arco de un puente colgante y hasta la órbita de un satélite. Sin ellas, no habría GPS ni videojuegos con física realista.",
+        "exemple": "El puente Golden Gate usa parábolas para distribuir el peso de forma segura.",
+        "question_reflexion": "¿Qué otros objetos de tu casa tienen forma de parábola?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratic-functions-equations",
+        "skill": "Resolver ecuaciones cuadráticas por factorización",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_parabola.html",
+        "description": "Desplaza el vértice de la parábola y observa cómo cambian las raíces."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué ecuación representa el área de un jardín rectangular de 12 m² si el largo mide 3 m más que el ancho?" },
+        { "process": "emplear", "question": "Resuelve la ecuación paso a paso." },
+        { "process": "interpretar", "question": "¿Qué significan las raíces en el contexto del jardín?" },
+        { "process": "evaluar", "question": "¿Este método funciona para todas las ecuaciones cuadráticas? ¿Por qué?" }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_ec_01", "level": 1, "process": "Formular", "question": "Escribe la ecuación del problema del jardín.", "expected_answer": "x(x+3)=12" },
+        { "id": "ex_maryse_ec_02", "level": 2, "process": "Emplear", "question": "Resuelve x² + 3x - 12 = 0. ¿Cuánto vale x?", "expected_answer": "x=3" },
+        { "id": "ex_maryse_ec_03", "level": 3, "process": "Interpréter", "question": "Si x=3, ¿cuáles son las dimensiones del jardín?", "expected_answer": "3m y 6m" },
+        { "id": "ex_maryse_ec_04", "level": 4, "process": "Évaluer", "question": "¿La factorización funciona si las raíces no son enteras? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_latidos_corazon",
+      "target_user": "Laeticia",
+      "field": "modelado_latidos_corazon",
+      "title": "Modelar los latidos del corazón",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La función seno describe los latidos de tu corazón. Los médicos usan gráficas trigonométricas para detectar arritmias y salvar vidas.",
+        "exemple": "Un electrocardiograma (ECG) es una gráfica de senos y cosenos.",
+        "question_reflexion": "¿Por qué crees que el corazón late con un patrón y no al azar?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/trigonometry/trig-equations-and-identities",
+        "skill": "Modelar fenómenos periódicos con funciones trigonométricas",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/laeticia_latidos_corazon.html",
+        "description": "Ajusta la frecuencia y la amplitud de la onda para simular un ECG."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué función trigonométrica modela mejor un latido cardíaco? ¿Por qué?" },
+        { "process": "emplear", "question": "Si el corazón late 72 veces por minuto, ¿cuál es el período de la función?" },
+        { "process": "interpretar", "question": "¿Qué significa un cambio en la amplitud de la onda en un ECG?" },
+        { "process": "evaluar", "question": "¿Este modelo es fiable para todas las arritmias? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_lc_01", "level": 1, "process": "Formular", "question": "Escribe una función seno que represente un latido de 60 ppm.", "expected_answer": "sin(2πt)" },
+        { "id": "ex_laeticia_lc_02", "level": 2, "process": "Emplear", "question": "Si f(t) = 2 sin(2πt), ¿cuál es la amplitud?", "expected_answer": "2" },
+        { "id": "ex_laeticia_lc_03", "level": 3, "process": "Interpréter", "question": "¿Qué significa un período de 0.8 segundos en un ECG?", "expected_answer": "75 ppm" },
+        { "id": "ex_laeticia_lc_04", "level": 4, "process": "Évaluer", "question": "¿Una función seno puede modelar una arritmia? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null, 
+      "xp_reward": 30
+      },
+      {
+      "id": "maryse_medidas_tendencia_central",
+      "target_user": "Maryse",
+      "field": "medidas_tendencia_central",
+      "title": "Medidas de tendencia central",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La media, la mediana y la moda se usan para tomar decisiones en el mundo real. Por ejemplo, los médicos usan la mediana para saber cuál es el tiempo de espera típico en un hospital, ignorando los casos extremos.",
+        "exemple": "El salario promedio de un país puede ser engañoso si hay multimillonarios; la mediana refleja mejor la realidad.",
+        "question_reflexion": "¿Cuándo crees que es mejor usar la mediana en lugar de la media?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/statistics-probability/summarizing-quantitative-data",
+        "skill": "Calcular la media, la mediana y la moda",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_medidas_tendencia.html",
+        "description": "Cambia los datos y observa cómo se mueven la media y la mediana."
+      },
+      "carnet": [
+        { "process": "formular", "question": "Tienes las notas 7, 8, 9, 10 y 20. ¿Qué medida usarías para representar el rendimiento típico? ¿Por qué?" },
+        { "process": "emplear", "question": "Calcula la media, la mediana y la moda de: 2, 4, 4, 6, 9." },
+        { "process": "interpretar", "question": "Si la media es 10 y la mediana es 6, ¿qué te dice eso sobre los datos?" },
+        { "process": "evaluar", "question": "¿Es justo usar la media para calcular el salario promedio de un país? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_mtc_01", "level": 1, "process": "Formular", "question": "¿Qué medida de tendencia central usarías para datos con valores extremos?", "expected_answer": "mediana" },
+        { "id": "ex_maryse_mtc_02", "level": 2, "process": "Emplear", "question": "Calcula la media de 4, 8, 12, 16.", "expected_answer": "10" },
+        { "id": "ex_maryse_mtc_03", "level": 3, "process": "Interpréter", "question": "Si la moda de un conjunto es 5, ¿qué significa?", "expected_answer": "el valor que más se repite" },
+        { "id": "ex_maryse_mtc_04", "level": 4, "process": "Évaluer", "question": "¿La media siempre representa bien a un conjunto de datos? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 20
+    },
+    {
+      "id": "maryse_sistemas_ecuaciones",
+      "target_user": "Maryse",
+      "field": "sistemas_ecuaciones",
+      "title": "Sistemas de ecuaciones lineales",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los sistemas de ecuaciones permiten resolver problemas con múltiples incógnitas, como calcular cuántos boletos de adulto y de niño se vendieron en un cine si sabes el total de personas y el dinero recaudado.",
+        "exemple": "Las aerolíneas usan sistemas de ecuaciones para optimizar rutas y precios.",
+        "question_reflexion": "¿Puedes pensar en un problema de tu vida diaria con dos incógnitas?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/algebra/x2f8bb11595b61c86:systems-of-equations",
+        "skill": "Resolver sistemas de ecuaciones por sustitución",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_sistemas.html",
+        "description": "Mueve las dos rectas y observa dónde se cruzan (el punto de solución)."
+      },
+      "carnet": [
+        { "process": "formular", "question": "Escribe un sistema de ecuaciones para: 3 manzanas y 2 peras cuestan 12; 1 manzana y 4 peras cuestan 14." },
+        { "process": "emplear", "question": "Resuelve el sistema: x + y = 10, x - y = 4." },
+        { "process": "interpretar", "question": "¿Qué significa geométricamente la solución de un sistema de dos ecuaciones?" },
+        { "process": "evaluar", "question": "¿Siempre existe una solución única para un sistema de dos ecuaciones? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_se_01", "level": 1, "process": "Formular", "question": "Escribe la ecuación: el doble de un número más 5 es 17.", "expected_answer": "2x+5=17" },
+        { "id": "ex_maryse_se_02", "level": 2, "process": "Emplear", "question": "Resuelve: x + y = 7, x - y = 1. ¿Cuánto vale x?", "expected_answer": "4" },
+        { "id": "ex_maryse_se_03", "level": 3, "process": "Interpréter", "question": "Si dos rectas son paralelas, ¿cuántas soluciones tiene el sistema?", "expected_answer": "ninguna" },
+        { "id": "ex_maryse_se_04", "level": 4, "process": "Évaluer", "question": "¿Es mejor resolver un sistema por sustitución o por igualación? Justifica.", "expected_answer": "depende" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_teorema_pitagoras",
+      "target_user": "Maryse",
+      "field": "teorema_pitagoras",
+      "title": "Teorema de Pitágoras",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El teorema de Pitágoras se usa para construir puentes, calcular la altura de edificios y hasta para que los GPS calculen la distancia más corta entre dos puntos.",
+        "exemple": "Los egipcios usaban cuerdas con nudos (3-4-5) para construir ángulos rectos perfectos en las pirámides.",
+        "question_reflexion": "¿Cómo podrías medir la diagonal de tu televisor sin usar una regla?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/geometry/hs-geo-trig/hs-geo-pythagorean-theorem",
+        "skill": "Aplicar el teorema de Pitágoras",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_pitagoras.html",
+        "description": "Arrastra los catetos y observa cómo la hipotenusa siempre cumple la fórmula."
+      },
+      "carnet": [
+        { "process": "formular", "question": "Si un triángulo tiene catetos de 3 y 4, ¿cómo calculas la hipotenusa?" },
+        { "process": "emplear", "question": "Calcula la hipotenusa de un triángulo con catetos 6 y 8." },
+        { "process": "interpretar", "question": "¿Qué significa que un triángulo sea rectángulo?" },
+        { "process": "evaluar", "question": "¿El teorema de Pitágoras funciona para cualquier triángulo? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_tp_01", "level": 1, "process": "Formular", "question": "Escribe la fórmula del teorema de Pitágoras.", "expected_answer": "a²+b²=c²" },
+        { "id": "ex_maryse_tp_02", "level": 2, "process": "Emplear", "question": "Si a=3 y b=4, ¿cuánto vale c?", "expected_answer": "5" },
+        { "id": "ex_maryse_tp_03", "level": 3, "process": "Interpréter", "question": "Si c=13 y a=5, ¿cuánto vale b?", "expected_answer": "12" },
+        { "id": "ex_maryse_tp_04", "level": 4, "process": "Évaluer", "question": "¿Puedes usar Pitágoras en un triángulo obtusángulo? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 20
+    },
+    {
+      "id": "maryse_razones_trigonometricas",
+      "target_user": "Maryse",
+      "field": "razones_trigonometricas",
+      "title": "Razones trigonométricas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Las razones trigonométricas (seno, coseno, tangente) permiten calcular alturas inaccesibles, como la de una montaña o la de un satélite, solo midiendo un ángulo y una distancia.",
+        "exemple": "Los topógrafos usan trigonometría para hacer mapas precisos del terreno.",
+        "question_reflexion": "¿Cómo medirías la altura de un árbol sin subirte a él?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/geometry/hs-geo-trig/hs-geo-trig-ratios-intro",
+        "skill": "Calcular seno, coseno y tangente",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_trigonometria.html",
+        "description": "Cambia el ángulo y observa cómo cambian las razones trigonométricas."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué razón trigonométrica relaciona el cateto opuesto y la hipotenusa?" },
+        { "process": "emplear", "question": "Si el ángulo es 30°, ¿cuánto vale el seno?" },
+        { "process": "interpretar", "question": "¿Por qué el seno y el coseno nunca pueden ser mayores que 1?" },
+        { "process": "evaluar", "question": "¿Es útil la trigonometría en la vida diaria? Justifica con un ejemplo." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_rt_01", "level": 1, "process": "Formular", "question": "¿Qué razón trigonométrica es cateto opuesto / hipotenusa?", "expected_answer": "seno" },
+        { "id": "ex_maryse_rt_02", "level": 2, "process": "Emplear", "question": "Si sen(30°) = 0.5, ¿cuánto vale el cateto opuesto si la hipotenusa es 10?", "expected_answer": "5" },
+        { "id": "ex_maryse_rt_03", "level": 3, "process": "Interpréter", "question": "¿Qué significa que tan(45°) = 1?", "expected_answer": "catetos iguales" },
+        { "id": "ex_maryse_rt_04", "level": 4, "process": "Évaluer", "question": "¿Se puede usar trigonometría en triángulos no rectángulos? Justifica.", "expected_answer": "sí, con leyes" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_poligonos_semejantes",
+      "target_user": "Maryse",
+      "field": "poligonos_semejantes",
+      "title": "Polígonos semejantes",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los polígonos semejantes permiten hacer mapas a escala, maquetas de edificios y hasta calcular el tamaño real de un dinosaurio a partir de un fósil.",
+        "exemple": "Los arquitectos usan maquetas a escala (polígonos semejantes) para diseñar edificios.",
+        "question_reflexion": "¿Cómo harías una maqueta de tu casa a escala?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/geometry/hs-geo-similarity",
+        "skill": "Identificar y calcular polígonos semejantes",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_semejantes.html",
+        "description": "Cambia el factor de escala y observa cómo cambian los lados."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué condición deben cumplir dos polígonos para ser semejantes?" },
+        { "process": "emplear", "question": "Si dos triángulos semejantes tienen lados 3, 4, 5 y 6, 8, 10, ¿cuál es la razón de semejanza?" },
+        { "process": "interpretar", "question": "¿Qué significa que dos figuras sean semejantes pero no congruentes?" },
+        { "process": "evaluar", "question": "¿Es lo mismo semejanza que congruencia? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_ps_01", "level": 1, "process": "Formular", "question": "¿Qué dos condiciones definen polígonos semejantes?", "expected_answer": "ángulos iguales y lados proporcionales" },
+        { "id": "ex_maryse_ps_02", "level": 2, "process": "Emplear", "question": "Si la razón de semejanza es 2, y un lado mide 5, ¿cuánto mide el lado correspondiente?", "expected_answer": "10" },
+        { "id": "ex_maryse_ps_03", "level": 3, "process": "Interpréter", "question": "Si dos triángulos son semejantes con razón 3, ¿cómo son sus áreas?", "expected_answer": "9 veces mayor" },
+        { "id": "ex_maryse_ps_04", "level": 4, "process": "Évaluer", "question": "¿Todos los triángulos equiláteros son semejantes? Justifica.", "expected_answer": "sí" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 20
+    },
+    {
+      "id": "maryse_probabilidad",
+      "target_user": "Maryse",
+      "field": "probabilidad",
+      "title": "Probabilidad",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La probabilidad se usa para predecir el clima, diseñar seguros y hasta para ganar en juegos de mesa. Sin ella, no existirían los pronósticos del tiempo.",
+        "exemple": "Los seguros de auto calculan el riesgo de accidente usando probabilidad.",
+        "question_reflexion": "¿Cuál es la probabilidad de que salga cara al lanzar una moneda?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/statistics-probability/probability-library",
+        "skill": "Calcular probabilidades simples",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_probabilidad.html",
+        "description": "Lanza los dados y observa la frecuencia relativa."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cómo calculas la probabilidad de un evento?" },
+        { "process": "emplear", "question": "¿Cuál es la probabilidad de sacar un 6 en un dado?" },
+        { "process": "interpretar", "question": "¿Qué significa que un evento tenga probabilidad 0.5?" },
+        { "process": "evaluar", "question": "¿Es posible predecir con certeza el resultado de un lanzamiento de dado? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_pr_01", "level": 1, "process": "Formular", "question": "¿Cuál es la fórmula de la probabilidad?", "expected_answer": "casos favorables / casos posibles" },
+        { "id": "ex_maryse_pr_02", "level": 2, "process": "Emplear", "question": "¿Cuál es la probabilidad de sacar un número par en un dado?", "expected_answer": "1/2" },
+        { "id": "ex_maryse_pr_03", "level": 3, "process": "Interpréter", "question": "Si lanzas una moneda 10 veces y sale cara 7 veces, ¿la probabilidad cambió?", "expected_answer": "no" },
+        { "id": "ex_maryse_pr_04", "level": 4, "process": "Évaluer", "question": "¿La probabilidad teórica siempre coincide con la experimental? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 20
+    },
+    {
+      "id": "maryse_sucesiones_patrones",
+      "target_user": "Maryse",
+      "field": "sucesiones_patrones",
+      "title": "Sucesiones y patrones",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Las sucesiones y patrones están en la naturaleza (las espirales de un caracol, los pétalos de una flor) y en la tecnología (los algoritmos de compresión de imágenes).",
+        "exemple": "La sucesión de Fibonacci aparece en la cría de conejos y en la forma de las galaxias.",
+        "question_reflexion": "¿Puedes encontrar un patrón en los números de tu casa o en tu número de teléfono?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/algebra/x2f8bb11595b61c86:sequences",
+        "skill": "Identificar y continuar sucesiones",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_sucesiones.html",
+        "description": "Construye la sucesión de Fibonacci y observa cómo crece."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cómo describirías el patrón de la sucesión 2, 4, 6, 8...?" },
+        { "process": "emplear", "question": "¿Cuál es el siguiente término de 3, 6, 12, 24...?" },
+        { "process": "interpretar", "question": "¿Qué diferencia hay entre una sucesión aritmética y una geométrica?" },
+        { "process": "evaluar", "question": "¿Todas las sucesiones tienen un patrón predecible? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_sp_01", "level": 1, "process": "Formular", "question": "¿Cuál es el patrón de 1, 4, 9, 16...?", "expected_answer": "cuadrados perfectos" },
+        { "id": "ex_maryse_sp_02", "level": 2, "process": "Emplear", "question": "¿Cuál es el siguiente término de 1, 1, 2, 3, 5...?", "expected_answer": "8" },
+        { "id": "ex_maryse_sp_03", "level": 3, "process": "Interpréter", "question": "Si una sucesión suma 3 cada vez, ¿qué tipo de sucesión es?", "expected_answer": "aritmética" },
+        { "id": "ex_maryse_sp_04", "level": 4, "process": "Évaluer", "question": "¿Se puede saber el término 100 de una sucesión sin calcular los 99 anteriores? Justifica.", "expected_answer": "sí, con fórmula" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_circulo_elementos",
+      "target_user": "Laeticia",
+      "field": "circulo_elementos",
+      "title": "El círculo y sus elementos",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El círculo está en todas partes: en las ruedas de los autos, en los relojes y hasta en las órbitas de los planetas. Entender sus elementos (radio, diámetro, circunferencia) permite diseñar desde bicicletas hasta satélites.",
+        "exemple": "Los ingenieros usan el círculo para diseñar engranajes que transmiten movimiento con precisión.",
+        "question_reflexion": "¿Qué objetos de tu casa tienen forma circular y por qué?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/geometry/hs-geo-circles",
+        "skill": "Calcular el radio, diámetro y circunferencia",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/laeticia_circulo.html",
+        "description": "Cambia el radio y observa cómo cambian el diámetro y la circunferencia."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cómo se relaciona el diámetro con el radio?" },
+        { "process": "emplear", "question": "Si el radio de un círculo es 5 cm, ¿cuál es su circunferencia?" },
+        { "process": "interpretar", "question": "¿Qué significa que la circunferencia sea proporcional al diámetro?" },
+        { "process": "evaluar", "question": "¿Es lo mismo círculo que circunferencia? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_ce_01", "level": 1, "process": "Formular", "question": "¿Cuál es la fórmula de la circunferencia?", "expected_answer": "2πr" },
+        { "id": "ex_laeticia_ce_02", "level": 2, "process": "Emplear", "question": "Si el diámetro es 10, ¿cuánto vale el radio?", "expected_answer": "5" },
+        { "id": "ex_laeticia_ce_03", "level": 3, "process": "Interpréter", "question": "Si la circunferencia es 31.4, ¿cuál es el radio? (π=3.14)", "expected_answer": "5" },
+        { "id": "ex_laeticia_ce_04", "level": 4, "process": "Évaluer", "question": "¿Se puede calcular el área de un círculo solo con el diámetro? Justifica.", "expected_answer": "sí" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 20
+    },
+    {
+      "id": "laeticia_ley_senos_cosenos",
+      "target_user": "Laeticia",
+      "field": "ley_senos_cosenos",
+      "title": "Ley de senos y cosenos",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La ley de senos y cosenos permite resolver triángulos que no son rectángulos, algo esencial en topografía, navegación y astronomía. Sin ellas, los barcos no podrían trazar rutas seguras.",
+        "exemple": "Los GPS usan la ley de cosenos para triangular tu posición exacta en el mapa.",
+        "question_reflexion": "¿Cómo crees que los marineros encontraban su ruta antes del GPS?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/precalculus/x9e81a4f98389efdf:trig/x9e81a4f98389efdf:law-of-sines",
+        "skill": "Aplicar la ley de senos y cosenos",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/laeticia_ley_senos_cosenos.html",
+        "description": "Arrastra los vértices del triángulo y observa cómo se aplican las leyes."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cuándo usarías la ley de senos en lugar de la ley de cosenos?" },
+        { "process": "emplear", "question": "En un triángulo con lados 8, 10 y ángulo 60°, ¿qué ley usarías para hallar el tercer lado?" },
+        { "process": "interpretar", "question": "¿Qué significa que la ley de senos tenga dos soluciones posibles?" },
+        { "process": "evaluar", "question": "¿Puedes usar la ley de senos en cualquier triángulo? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_lsc_01", "level": 1, "process": "Formular", "question": "Escribe la ley de senos.", "expected_answer": "a/sen(A) = b/sen(B)" },
+        { "id": "ex_laeticia_lsc_02", "level": 2, "process": "Emplear", "question": "Si a=5, A=30° y B=45°, ¿cuánto vale b?", "expected_answer": "7.07" },
+        { "id": "ex_laeticia_lsc_03", "level": 3, "process": "Interpréter", "question": "¿Qué pasa si el ángulo es 90° en la ley de cosenos?", "expected_answer": "se reduce a Pitágoras" },
+        { "id": "ex_laeticia_lsc_04", "level": 4, "process": "Évaluer", "question": "¿Es más eficiente usar ley de senos o cosenos? Justifica.", "expected_answer": "depende de los datos" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "laeticia_poligonos_regulares",
+      "target_user": "Laeticia",
+      "field": "poligonos_regulares",
+      "title": "Polígonos regulares",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los polígonos regulares están en la naturaleza (panales de abejas) y en la arquitectura (el Pentágono en EE.UU.). Su simetría permite construir estructuras eficientes y bellas.",
+        "exemple": "Los panales de abejas son hexágonos regulares porque es la forma más eficiente de almacenar miel.",
+        "question_reflexion": "¿Por qué crees que las abejas eligen hexágonos y no cuadrados?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/geometry/hs-geo-circles/hs-geo-inscribed-polygons",
+        "skill": "Calcular ángulos y áreas de polígonos regulares",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_poligonos.html",
+        "description": "Cambia el número de lados y observa cómo cambian los ángulos."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cómo calculas la suma de los ángulos interiores de un polígono?" },
+        { "process": "emplear", "question": "¿Cuánto mide cada ángulo interior de un hexágono regular?" },
+        { "process": "interpretar", "question": "¿Qué relación hay entre el número de lados y el ángulo central?" },
+        { "process": "evaluar", "question": "¿Todos los polígonos con lados iguales son regulares? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_pr_01", "level": 1, "process": "Formular", "question": "¿Cuál es la suma de los ángulos interiores de un pentágono?", "expected_answer": "540°" },
+        { "id": "ex_laeticia_pr_02", "level": 2, "process": "Emplear", "question": "¿Cuánto mide cada ángulo interior de un octágono regular?", "expected_answer": "135°" },
+        { "id": "ex_laeticia_pr_03", "level": 3, "process": "Interpréter", "question": "Si un polígono regular tiene ángulos de 120°, ¿cuántos lados tiene?", "expected_answer": "6" },
+        { "id": "ex_laeticia_pr_04", "level": 4, "process": "Évaluer", "question": "¿Se puede construir un polígono regular con cualquier número de lados? Justifica.", "expected_answer": "sí" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_funciones_trigonometricas",
+      "target_user": "Laeticia",
+      "field": "funciones_trigonometricas",
+      "title": "Funciones trigonométricas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Las funciones trigonométricas describen fenómenos periódicos: el sonido, la luz, las mareas y hasta los latidos del corazón. Sin ellas, no existirían la música digital ni las telecomunicaciones.",
+        "exemple": "Las ondas de radio y WiFi son funciones trigonométricas que transportan información.",
+        "question_reflexion": "¿Qué otros fenómenos de la naturaleza son periódicos?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/trigonometry/unit-circle-trig-func",
+        "skill": "Graficar y analizar funciones seno y coseno",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/laeticia_funciones_trig.html",
+        "description": "Ajusta la amplitud y la frecuencia para ver cómo cambia la onda."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre el seno y el coseno en sus gráficas?" },
+        { "process": "emplear", "question": "¿Cuál es el período de la función sen(2x)?" },
+        { "process": "interpretar", "question": "¿Qué significa que una función tenga amplitud 3?" },
+        { "process": "evaluar", "question": "¿Todas las ondas se pueden modelar con seno y coseno? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_ft_01", "level": 1, "process": "Formular", "question": "¿Cuál es el período de la función sen(x)?", "expected_answer": "2π" },
+        { "id": "ex_laeticia_ft_02", "level": 2, "process": "Emplear", "question": "¿Cuál es la amplitud de 3 sen(x)?", "expected_answer": "3" },
+        { "id": "ex_laeticia_ft_03", "level": 3, "process": "Interpréter", "question": "Si una onda tiene período π, ¿cuántas veces se repite en 2π?", "expected_answer": "2" },
+        { "id": "ex_laeticia_ft_04", "level": 4, "process": "Évaluer", "question": "¿Una función coseno puede modelar una onda de sonido? Justifica.", "expected_answer": "sí" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "laeticia_sistemas_ecuaciones",
+      "target_user": "Laeticia",
+      "field": "sistemas_ecuaciones",
+      "title": "Sistemas de ecuaciones",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los sistemas de ecuaciones permiten resolver problemas con varias incógnitas, como calcular la cantidad de boletos vendidos de dos tipos diferentes si conoces el total y el dinero recaudado.",
+        "exemple": "Las empresas usan sistemas de ecuaciones para optimizar la producción y los costos.",
+        "question_reflexion": "¿Qué problema de tu vida diaria podrías resolver con un sistema de ecuaciones?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/algebra/x2f8bb11595b61c86:systems-of-equations",
+        "skill": "Resolver sistemas de ecuaciones por eliminación",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_sistemas.html",
+        "description": "Mueve las rectas y observa el punto de intersección."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cómo planteas un sistema de ecuaciones para un problema de mezclas?" },
+        { "process": "emplear", "question": "Resuelve: 2x + y = 7, x - y = 2." },
+        { "process": "interpretar", "question": "¿Qué significa que un sistema tenga infinitas soluciones?" },
+        { "process": "evaluar", "question": "¿Qué método es más eficiente: sustitución, igualación o eliminación? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_se_01", "level": 1, "process": "Formular", "question": "Escribe un sistema con solución x=2, y=3.", "expected_answer": "x+y=5, x-y=-1" },
+        { "id": "ex_laeticia_se_02", "level": 2, "process": "Emplear", "question": "Resuelve: x + y = 10, x - y = 2. ¿Cuánto vale x?", "expected_answer": "6" },
+        { "id": "ex_laeticia_se_03", "level": 3, "process": "Interpréter", "question": "Si dos rectas coinciden, ¿cuántas soluciones hay?", "expected_answer": "infinitas" },
+        { "id": "ex_laeticia_se_04", "level": 4, "process": "Évaluer", "question": "¿Puede un sistema de dos ecuaciones tener exactamente dos soluciones? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_estadisticas",
+      "target_user": "Laeticia",
+      "field": "estadisticas",
+      "title": "Estadísticas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La estadística permite entender el mundo: desde las encuestas de opinión hasta los ensayos clínicos de medicamentos. Sin ella, no podríamos saber si un tratamiento funciona o no.",
+        "exemple": "Las encuestas electorales usan muestras estadísticas para predecir resultados.",
+        "question_reflexion": "¿Cómo sabes si una encuesta es confiable?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/statistics-probability",
+        "skill": "Analizar datos y calcular medidas estadísticas",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_estadisticas.html",
+        "description": "Agrega datos y observa cómo cambian la media y la desviación estándar."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre una muestra y una población?" },
+        { "process": "emplear", "question": "Calcula la media de: 10, 12, 14, 16, 18." },
+        { "process": "interpretar", "question": "¿Qué significa que la desviación estándar sea pequeña?" },
+        { "process": "evaluar", "question": "¿Una muestra de 10 personas puede representar a todo un país? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_es_01", "level": 1, "process": "Formular", "question": "¿Qué mide la desviación estándar?", "expected_answer": "dispersión" },
+        { "id": "ex_laeticia_es_02", "level": 2, "process": "Emplear", "question": "Calcula la media de 2, 4, 6, 8.", "expected_answer": "5" },
+        { "id": "ex_laeticia_es_03", "level": 3, "process": "Interpréter", "question": "Si la media es 50 y la desviación estándar es 2, ¿los datos están dispersos?", "expected_answer": "no" },
+        { "id": "ex_laeticia_es_04", "level": 4, "process": "Évaluer", "question": "¿La media siempre representa bien a los datos? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_probabilidad",
+      "target_user": "Laeticia",
+      "field": "probabilidad",
+      "title": "Probabilidad",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La probabilidad se usa para predecir el clima, diseñar seguros y hasta para ganar en juegos de azar. Es la base de la toma de decisiones en situaciones de incertidumbre.",
+        "exemple": "Los casinos usan probabilidad para asegurar sus ganancias a largo plazo.",
+        "question_reflexion": "¿Qué decisiones tomas a diario basándote en probabilidades?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/math/statistics-probability/probability-library",
+        "skill": "Calcular probabilidades compuestas",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_probabilidad.html",
+        "description": "Simula lanzamientos y compara la probabilidad teórica con la experimental."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre probabilidad teórica y experimental?" },
+        { "process": "emplear", "question": "¿Cuál es la probabilidad de sacar dos caras seguidas con una moneda?" },
+        { "process": "interpretar", "question": "¿Qué significa que un evento sea independiente de otro?" },
+        { "process": "evaluar", "question": "¿La probabilidad experimental siempre se acerca a la teórica? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_pr_01", "level": 1, "process": "Formular", "question": "¿Cuál es la probabilidad de un evento seguro?", "expected_answer": "1" },
+        { "id": "ex_laeticia_pr_02", "level": 2, "process": "Emplear", "question": "¿Cuál es la probabilidad de sacar un as en una baraja de 52 cartas?", "expected_answer": "4/52" },
+        { "id": "ex_laeticia_pr_03", "level": 3, "process": "Interpréter", "question": "Si lanzas dos dados, ¿cuál es la probabilidad de que la suma sea 7?", "expected_answer": "6/36" },
+        { "id": "ex_laeticia_pr_04", "level": 4, "process": "Évaluer", "question": "¿Se puede predecir el resultado de un lanzamiento individual? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_quimica_ph",
+      "target_user": "Maryse",
+      "field": "quimica_ph",
+      "title": "Indicador natural de pH (Col morada)",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El pigmento del repollo morado (antocianinas) es el mismo que da color a los arándanos y a las uvas. Los científicos lo usan para medir la acidez del suelo y salvar cosechas.",
+        "exemple": "Los agricultores usan indicadores naturales para saber si su tierra es ácida o básica.",
+        "question_reflexion": "¿Qué otros alimentos de tu cocina podrían servir como indicadores?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/acids-and-bases",
+        "skill": "Identificar ácidos y bases con indicadores",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_quimica_ph.html",
+        "description": "Añade limón, jabón y vinagre al indicador y observa los colores."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué crees que pasará si añades limón al indicador?" },
+        { "process": "emplear", "question": "Añade el limón y observa el color. ¿Qué pH indica?" },
+        { "process": "interpretar", "question": "¿Por qué el color cambió? ¿Qué significa para el pH?" },
+        { "process": "evaluar", "question": "¿Este indicador es fiable para medir pH? ¿Qué limitaciones tiene?" }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_ph_01", "level": 1, "process": "Formular", "question": "¿Qué pigmento del repollo morado cambia de color?", "expected_answer": "antocianinas" },
+        { "id": "ex_maryse_ph_02", "level": 2, "process": "Emplear", "question": "Si el indicador se vuelve rojo, ¿el pH es ácido o básico?", "expected_answer": "ácido" },
+        { "id": "ex_maryse_ph_03", "level": 3, "process": "Interpréter", "question": "¿Qué significa un pH de 7?", "expected_answer": "neutro" },
+        { "id": "ex_maryse_ph_04", "level": 4, "process": "Évaluer", "question": "¿Es mejor un indicador natural o un pH-metro digital? Justifica.", "expected_answer": "pH-metro es más preciso" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_fisica_fuego",
+      "target_user": "Maryse",
+      "field": "fisica_fuego",
+      "title": "El triángulo del fuego",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los bomberos usan el triángulo del fuego para apagar incendios: eliminan uno de los tres elementos (combustible, calor u oxígeno). Sin esta comprensión, no podrían salvar vidas.",
+        "exemple": "Cuando sofocas una vela con un vaso, estás aplicando el triángulo del fuego.",
+        "question_reflexion": "¿Qué otros métodos usan los bomberos para apagar incendios?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/thermodynamics-chemistry",
+        "skill": "Comprender la combustión y el triángulo del fuego",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_fisica_fuego.html",
+        "description": "Cubre la vela, sopla, o quita el combustible y observa qué pasa."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué tres elementos necesita el fuego para arder?" },
+        { "process": "emplear", "question": "Si cubres una vela con un vaso, ¿qué elemento eliminas?" },
+        { "process": "interpretar", "question": "¿Por qué la llama se vuelve amarilla en la parte superior y azul en la base?" },
+        { "process": "evaluar", "question": "¿Se puede apagar un fuego eliminando solo el calor? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_ff_01", "level": 1, "process": "Formular", "question": "¿Cuáles son los tres elementos del triángulo del fuego?", "expected_answer": "combustible, calor, oxígeno" },
+        { "id": "ex_maryse_ff_02", "level": 2, "process": "Emplear", "question": "Si soplas una vela, ¿qué elemento eliminas?", "expected_answer": "calor" },
+        { "id": "ex_maryse_ff_03", "level": 3, "process": "Interpréter", "question": "¿Por qué el agua apaga el fuego?", "expected_answer": "elimina calor y oxígeno" },
+        { "id": "ex_maryse_ff_04", "level": 4, "process": "Évaluer", "question": "¿Puede existir fuego sin oxígeno? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_biologia_celula",
+      "target_user": "Maryse",
+      "field": "biologia_celula",
+      "title": "La célula y sus organelos",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Cada célula de tu cuerpo es una fábrica microscópica. Los organelos trabajan juntos para producir energía, eliminar desechos y defenderse de virus. Sin ellos, la vida no existiría.",
+        "exemple": "Las mitocondrias son las centrales eléctricas de la célula.",
+        "question_reflexion": "¿Qué crees que pasa si una célula no tiene mitocondrias?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/biology/structure-of-a-cell",
+        "skill": "Identificar los organelos celulares y sus funciones",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_biologia_celula.html",
+        "description": "Explora la célula en 3D y descubre cada organelo."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cuál es la función principal de la mitocondria?" },
+        { "process": "emplear", "question": "¿Qué organelo controla las actividades de la célula?" },
+        { "process": "interpretar", "question": "¿Por qué las células musculares tienen más mitocondrias que las células de la piel?" },
+        { "process": "evaluar", "question": "¿Las células vegetales y animales tienen los mismos organelos? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_bc_01", "level": 1, "process": "Formular", "question": "¿Qué organelo produce energía en la célula?", "expected_answer": "mitocondria" },
+        { "id": "ex_maryse_bc_02", "level": 2, "process": "Emplear", "question": "¿Qué organelo contiene el ADN?", "expected_answer": "núcleo" },
+        { "id": "ex_maryse_bc_03", "level": 3, "process": "Interpréter", "question": "¿Por qué las células vegetales son verdes?", "expected_answer": "cloroplastos" },
+        { "id": "ex_maryse_bc_04", "level": 4, "process": "Évaluer", "question": "¿Una célula sin núcleo puede sobrevivir? Justifica.", "expected_answer": "no por mucho tiempo" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_quimica_volcan",
+      "target_user": "Laeticia",
+      "field": "quimica_volcan",
+      "title": "Volcán químico",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La reacción entre vinagre y bicarbonato produce dióxido de carbono (CO₂), el mismo gas que exhalamos al respirar. Es una reacción ácido-base que se usa en extintores y en la industria alimentaria.",
+        "exemple": "Los extintores de CO₂ funcionan con una reacción similar para sofocar el fuego.",
+        "question_reflexion": "¿Por qué crees que la reacción se enfría?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/acids-and-bases",
+        "skill": "Comprender las reacciones ácido-base",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/laeticia_volcan.html",
+        "description": "Mezcla vinagre y bicarbonato y observa la efervescencia."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué gas se libera en la reacción?" },
+        { "process": "emplear", "question": "¿Qué tipo de reacción es: endotérmica o exotérmica?" },
+        { "process": "interpretar", "question": "¿Por qué el vaso se siente frío?" },
+        { "process": "evaluar", "question": "¿Se puede usar esta reacción para apagar un incendio? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_qv_01", "level": 1, "process": "Formular", "question": "¿Qué gas se produce al mezclar vinagre y bicarbonato?", "expected_answer": "CO2" },
+        { "id": "ex_laeticia_qv_02", "level": 2, "process": "Emplear", "question": "¿La reacción es endotérmica o exotérmica?", "expected_answer": "endotérmica" },
+        { "id": "ex_laeticia_qv_03", "level": 3, "process": "Interpréter", "question": "¿Qué pasa si añades más bicarbonato?", "expected_answer": "más efervescencia" },
+        { "id": "ex_laeticia_qv_04", "level": 4, "process": "Évaluer", "question": "¿Esta reacción es reversible? Justifica.", "expected_answer": "no fácilmente" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_fisica_circuitos",
+      "target_user": "Laeticia",
+      "field": "fisica_circuitos",
+      "title": "Circuitos eléctricos simples",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los circuitos eléctricos están en todo: desde una linterna hasta el cerebro humano. Entender cómo fluye la electricidad permite diseñar desde juguetes hasta computadoras.",
+        "exemple": "El cerebro humano funciona con impulsos eléctricos que viajan por las neuronas.",
+        "question_reflexion": "¿Qué pasa si se rompe un cable en un circuito?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/physics/circuits-topic",
+        "skill": "Comprender circuitos en serie y en paralelo",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_circuitos.html",
+        "description": "Enciende y apaga bombillas en serie y en paralelo."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre un circuito en serie y uno en paralelo?" },
+        { "process": "emplear", "question": "Si apagas una bombilla en serie, ¿qué pasa con las demás?" },
+        { "process": "interpretar", "question": "¿Por qué las luces de tu casa están en paralelo?" },
+        { "process": "evaluar", "question": "¿Qué tipo de circuito es más eficiente? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_fc_01", "level": 1, "process": "Formular", "question": "¿Qué tipo de circuito tiene una sola ruta para la corriente?", "expected_answer": "serie" },
+        { "id": "ex_laeticia_fc_02", "level": 2, "process": "Emplear", "question": "Si una bombilla se funde en paralelo, ¿las demás se apagan?", "expected_answer": "no" },
+        { "id": "ex_laeticia_fc_03", "level": 3, "process": "Interpréter", "question": "¿Por qué el voltaje es el mismo en paralelo?", "expected_answer": "misma diferencia de potencial" },
+        { "id": "ex_laeticia_fc_04", "level": 4, "process": "Évaluer", "question": "¿Qué circuito usarías para las luces de un árbol de Navidad? Justifica.", "expected_answer": "paralelo" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_biologia_corazon",
+      "target_user": "Laeticia",
+      "field": "biologia_corazon",
+      "title": "El sistema circulatorio",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Tu corazón late unas 100,000 veces al día, bombeando sangre a todo el cuerpo. Entender cómo funciona permite prevenir enfermedades cardíacas, la primera causa de muerte en el mundo.",
+        "exemple": "Un electrocardiograma (ECG) mide la actividad eléctrica del corazón.",
+        "question_reflexion": "¿Qué hábitos crees que cuidan tu corazón?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/biology/human-biology/circulatory-system",
+        "skill": "Comprender la anatomía y función del corazón",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_corazon.html",
+        "description": "Explora el corazón en 3D y observa cómo bombea la sangre."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cuántas cavidades tiene el corazón humano?" },
+        { "process": "emplear", "question": "¿Qué sangre lleva oxígeno: la arterial o la venosa?" },
+        { "process": "interpretar", "question": "¿Por qué el corazón late más rápido cuando haces ejercicio?" },
+        { "process": "evaluar", "question": "¿Qué relación hay entre el corazón y los pulmones? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_bc_01", "level": 1, "process": "Formular", "question": "¿Cuántas cavidades tiene el corazón?", "expected_answer": "4" },
+        { "id": "ex_laeticia_bc_02", "level": 2, "process": "Emplear", "question": "¿Qué sangre lleva oxígeno?", "expected_answer": "arterial" },
+        { "id": "ex_laeticia_bc_03", "level": 3, "process": "Interpréter", "question": "¿Qué mide un electrocardiograma?", "expected_answer": "actividad eléctrica" },
+        { "id": "ex_laeticia_bc_04", "level": 4, "process": "Évaluer", "question": "¿El corazón puede latir sin el cerebro? Justifica.", "expected_answer": "sí, pero no regulado" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_tech_boucles",
+      "target_user": "Maryse",
+      "field": "tech_boucles",
+      "title": "Introducción a la programación: Bucles",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Los bucles son la base de casi todo el software. Permiten que una computadora repita una tarea millones de veces por segundo. Sin ellos, no existirían los videojuegos, las redes sociales ni la inteligencia artificial.",
+        "exemple": "Un videojuego usa bucles para actualizar la posición de los personajes 60 veces por segundo.",
+        "question_reflexion": "¿Qué tareas de tu vida diaria podrías automatizar con un bucle?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/computing/computer-programming/programming",
+        "skill": "Escribir bucles en Python (for, while)",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/maryse_tech_boucles.html",
+        "description": "Usa el playground de Python para imprimir los números del 1 al 10."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre un bucle 'for' y un bucle 'while'?" },
+        { "process": "emplear", "question": "Escribe un bucle que imprima los números pares del 2 al 10." },
+        { "process": "interpretar", "question": "¿Qué pasaría si un bucle 'while' nunca cambia su condición?" },
+        { "process": "evaluar", "question": "¿Cuándo es mejor usar un bucle 'for' en lugar de uno 'while'? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_tb_01", "level": 1, "process": "Formular", "question": "¿Qué palabra clave se usa para un bucle definido en Python?", "expected_answer": "for" },
+        { "id": "ex_maryse_tb_02", "level": 2, "process": "Emplear", "question": "¿Cuántas veces se ejecuta: for i in range(5)?", "expected_answer": "5" },
+        { "id": "ex_maryse_tb_03", "level": 3, "process": "Interpréter", "question": "Si un bucle while es True, ¿qué pasa?", "expected_answer": "infinito" },
+        { "id": "ex_maryse_tb_04", "level": 4, "process": "Évaluer", "question": "¿Es siempre necesario usar un bucle? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "laeticia_tech_funciones",
+      "target_user": "Laeticia",
+      "field": "tech_funciones",
+      "title": "Funciones en Python",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Las funciones permiten reutilizar código y hacer programas más limpios. Son como pequeñas fábricas: reciben ingredientes (parámetros) y devuelven un producto (resultado).",
+        "exemple": "Las aplicaciones de tu teléfono usan funciones para calcular distancias, mostrar mensajes y procesar pagos.",
+        "question_reflexion": "¿Qué función de tu vida diaria te gustaría automatizar?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/computing/computer-programming/programming/functions",
+        "skill": "Definir y llamar funciones en Python",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/laeticia_tech_funciones.html",
+        "description": "Crea una función que calcule el área de un rectángulo."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cómo defines una función en Python?" },
+        { "process": "emplear", "question": "Escribe una función que sume dos números." },
+        { "process": "interpretar", "question": "¿Qué significa que una función devuelva un valor?" },
+        { "process": "evaluar", "question": "¿Es mejor tener muchas funciones pequeñas o una función gigante? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_tf_01", "level": 1, "process": "Formular", "question": "¿Qué palabra clave define una función en Python?", "expected_answer": "def" },
+        { "id": "ex_laeticia_tf_02", "level": 2, "process": "Emplear", "question": "¿Qué devuelve: def f(x): return x*2; f(3)?", "expected_answer": "6" },
+        { "id": "ex_laeticia_tf_03", "level": 3, "process": "Interpréter", "question": "¿Qué pasa si una función no tiene 'return'?", "expected_answer": "devuelve None" },
+        { "id": "ex_laeticia_tf_04", "level": 4, "process": "Évaluer", "question": "¿Se pueden llamar funciones dentro de otras funciones? Justifica.", "expected_answer": "sí" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "maryse_finanzas_interes",
+      "target_user": "Maryse",
+      "field": "finanzas_interes",
+      "title": "Interés simple y compuesto",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El interés compuesto es la fuerza más poderosa del universo financiero. Albert Einstein lo llamó 'la octava maravilla del mundo'. Con él, tu dinero puede crecer exponencialmente con el tiempo.",
+        "exemple": "Si ahorras $100 al mes al 5% anual, en 30 años tendrás más de $80,000 gracias al interés compuesto.",
+        "question_reflexion": "¿Por qué crees que es importante empezar a ahorrar desde joven?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/economics-finance-domain/core-finance/interest-tutorial",
+        "skill": "Calcular interés simple y compuesto",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_finanzas_interes.html",
+        "description": "Ajusta el tiempo y la tasa para ver cómo crece tu dinero."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cuál es la fórmula del interés simple?" },
+        { "process": "emplear", "question": "Si inviertes $1000 al 10% anual durante 2 años, ¿cuánto ganas con interés simple?" },
+        { "process": "interpretar", "question": "¿Por qué el interés compuesto crece más rápido que el simple?" },
+        { "process": "evaluar", "question": "¿Es mejor ahorrar $100 al mes al 5% o $1200 al año al 5%? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_fi_01", "level": 1, "process": "Formular", "question": "¿Qué fórmula representa el interés simple?", "expected_answer": "I=P*r*t" },
+        { "id": "ex_maryse_fi_02", "level": 2, "process": "Emplear", "question": "Si P=1000, r=0.1, t=2, ¿cuánto es el interés simple?", "expected_answer": "200" },
+        { "id": "ex_maryse_fi_03", "level": 3, "process": "Interpréter", "question": "¿Qué pasa si el tiempo se duplica con interés compuesto?", "expected_answer": "crecimiento exponencial" },
+        { "id": "ex_maryse_fi_04", "level": 4, "process": "Évaluer", "question": "¿Es mejor pagar una deuda con interés simple o compuesto? Justifica.", "expected_answer": "simple" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_finanzas_presupuesto",
+      "target_user": "Laeticia",
+      "field": "finanzas_presupuesto",
+      "title": "Presupuesto familiar",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Un presupuesto es un plan para tu dinero. Las familias que presupuestan ahorran hasta un 20% más y evitan deudas. Es una habilidad que se aprende y que te dará libertad toda la vida.",
+        "exemple": "Una familia que gana $2000 al mes y gasta $1500 puede ahorrar $500 al mes.",
+        "question_reflexion": "¿Qué gastos crees que son más difíciles de controlar?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/college-careers-more/financial-literacy",
+        "skill": "Crear y gestionar un presupuesto",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/laeticia_finanzas_presupuesto.html",
+        "description": "Asigna dinero a diferentes categorías y observa el saldo."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué categorías debe tener un presupuesto básico?" },
+        { "process": "emplear", "question": "Si tienes $1000 y gastas 30% en comida y 20% en renta, ¿cuánto te queda?" },
+        { "process": "interpretar", "question": "¿Qué significa que un presupuesto esté 'balanceado'?" },
+        { "process": "evaluar", "question": "¿Es mejor ahorrar primero o gastar primero? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_fp_01", "level": 1, "process": "Formular", "question": "¿Qué es un presupuesto?", "expected_answer": "plan de gastos" },
+        { "id": "ex_laeticia_fp_02", "level": 2, "process": "Emplear", "question": "Si gastas 40% de $500 en comida, ¿cuánto gastas?", "expected_answer": "200" },
+        { "id": "ex_laeticia_fp_03", "level": 3, "process": "Interpréter", "question": "¿Qué significa un presupuesto con déficit?", "expected_answer": "gastas más de lo que ganas" },
+        { "id": "ex_laeticia_fp_04", "level": 4, "process": "Évaluer", "question": "¿Es realista ahorrar el 50% de tus ingresos? Justifica.", "expected_answer": "depende" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_quimica_volcan",
+      "target_user": "Maryse",
+      "field": "quimica_volcan",
+      "title": "Volcán químico",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "La reacción entre vinagre y bicarbonato produce dióxido de carbono (CO₂), el mismo gas que exhalamos al respirar. Es una reacción ácido-base que se usa en extintores y en la industria alimentaria.",
+        "exemple": "Los extintores de CO₂ funcionan con una reacción similar para sofocar el fuego.",
+        "question_reflexion": "¿Por qué crees que la reacción se enfría?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/acids-and-bases",
+        "skill": "Comprender las reacciones ácido-base",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/maryse_volcan.html",
+        "description": "Mezcla vinagre y bicarbonato y observa la efervescencia."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué gas se libera en la reacción?" },
+        { "process": "emplear", "question": "¿Qué tipo de reacción es: endotérmica o exotérmica?" },
+        { "process": "interpretar", "question": "¿Por qué el vaso se siente frío?" },
+        { "process": "evaluar", "question": "¿Se puede usar esta reacción para apagar un incendio? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_qv_01", "level": 1, "process": "Formular", "question": "¿Qué gas se produce al mezclar vinagre y bicarbonato?", "expected_answer": "CO2" },
+        { "id": "ex_maryse_qv_02", "level": 2, "process": "Emplear", "question": "¿La reacción es endotérmica o exotérmica?", "expected_answer": "endotérmica" },
+        { "id": "ex_maryse_qv_03", "level": 3, "process": "Interpréter", "question": "¿Qué pasa si añades más bicarbonato?", "expected_answer": "más efervescencia" },
+        { "id": "ex_maryse_qv_04", "level": 4, "process": "Évaluer", "question": "¿Esta reacción es reversible? Justifica.", "expected_answer": "no fácilmente" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_genetica",
+      "target_user": "Laeticia",
+      "field": "genetica",
+      "title": "Genética: La herencia de los rasgos",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Cada célula de tu cuerpo contiene 46 cromosomas, la mitad de tu padre y la mitad de tu madre. Los genes que llevan determinan el color de tus ojos, tu estatura y hasta tu riesgo de enfermedades.",
+        "exemple": "Si ambos padres tienen ojos marrones pero llevan el gen recesivo, pueden tener un hijo con ojos azules.",
+        "question_reflexion": "¿A quién te pareces más físicamente, a tu padre o a tu madre? ¿Por qué?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/biology/classical-genetics",
+        "skill": "Comprender la herencia mendeliana y el Cuadrado de Punnett",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_genetica.html",
+        "description": "Experimenta con el Cuadrado de Punnett y descubre cómo se heredan los ojos marrones y azules."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre un genotipo (AA, Aa, aa) y un fenotipo (ojos marrones, ojos azules)?" },
+        { "process": "emplear", "question": "Si el padre es Aa y la madre es aa, ¿qué proporción de hijos tendrá ojos azules?" },
+        { "process": "interpretar", "question": "¿Por qué dos padres con ojos marrones pueden tener un hijo con ojos azules?" },
+        { "process": "evaluar", "question": "¿El Cuadrado de Punnett predice con certeza el color de ojos de un hijo? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_gen_01", "level": 1, "process": "Formular", "question": "¿Cuántos alelos hereda un hijo de cada padre?", "expected_answer": "1" },
+        { "id": "ex_laeticia_gen_02", "level": 2, "process": "Emplear", "question": "Si ambos padres son Aa, ¿qué porcentaje de hijos serán aa?", "expected_answer": "25%" },
+        { "id": "ex_laeticia_gen_03", "level": 3, "process": "Interpréter", "question": "¿Qué significa que un alelo sea recesivo?", "expected_answer": "solo se expresa con dos copias" },
+        { "id": "ex_laeticia_gen_04", "level": 4, "process": "Évaluer", "question": "¿Todos los rasgos siguen las leyes de Mendel? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_quimica_tabla_periodica",
+      "target_user": "Maryse",
+      "field": "quimica_tabla_periodica",
+      "title": "La Tabla Periódica y los elementos",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Todos los elementos del universo están en la tabla periódica. El oxígeno que respiras, el hierro de tu sangre, el silicio de tu teléfono... todo está ahí. Pero no necesitas memorizar 118 símbolos: necesitas entender por qué reaccionan como lo hacen.",
+        "exemple": "El sodio (Na) y el cloro (Cl) son peligrosos por separado, pero juntos forman la sal de mesa (NaCl).",
+        "question_reflexion": "¿Por qué el sodio y el cloro reaccionan tan violentamente, pero juntos son inofensivos?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/periodic-table",
+        "skill": "Comprender la tabla periódica y las tendencias de los elementos",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/maryse_quimica_tabla_periodica.html",
+        "description": "Explora la tabla, descubre la capa de valencia, predice reacciones y balancea ecuaciones."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Por qué el sodio quiere dar un electrón y el cloro quiere recibir uno?" },
+        { "process": "emplear", "question": "Predice qué compuesto forman el magnesio (Mg) y el oxígeno (O)." },
+        { "process": "interpretar", "question": "¿Por qué los gases nobles no reaccionan con nada?" },
+        { "process": "evaluar", "question": "¿Es más importante memorizar los 118 elementos o entender la capa de valencia? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_tp_01", "level": 1, "process": "Formular", "question": "¿Cuántos electrones tiene el sodio (Na) en su capa de valencia?", "expected_answer": "1" },
+        { "id": "ex_maryse_tp_02", "level": 2, "process": "Emplear", "question": "¿Qué elemento tiene 7 electrones de valencia?", "expected_answer": "Cl" },
+        { "id": "ex_maryse_tp_03", "level": 3, "process": "Interpréter", "question": "Si un elemento tiene 8 electrones en su capa de valencia, ¿qué tipo de elemento es?", "expected_answer": "gas noble" },
+        { "id": "ex_maryse_tp_04", "level": 4, "process": "Évaluer", "question": "¿Por qué el hierro (Fe) puede formar iones Fe²⁺ y Fe³⁺? Justifica.", "expected_answer": "puede perder 2 o 3 electrones" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "maryse_quimica_moleculas",
+      "target_user": "Maryse",
+      "field": "quimica_moleculas",
+      "title": "Construye tus propias moléculas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Cada molécula tiene una forma específica que determina sus propiedades. El agua (H₂O) es polar y por eso disuelve la sal. El CO₂ es no polar y por eso no disuelve la sal. La forma lo es todo.",
+        "exemple": "El ADN es una doble hélice porque los enlaces entre sus bases tienen ángulos específicos.",
+        "question_reflexion": "¿Por qué el agua y el aceite no se mezclan, si ambos son líquidos?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/chemical-bonds",
+        "skill": "Comprender la geometría molecular y la polaridad",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/maryse_quimica_moleculas.html",
+        "description": "Construye moléculas con 15 átomos diferentes y descubre su geometría."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Por qué la molécula de agua tiene forma de V (coudée) y no es lineal?" },
+        { "process": "emplear", "question": "Construye una molécula de NaCl. ¿Qué tipo de enlace une al sodio y al cloro?" },
+        { "process": "interpretar", "question": "¿Por qué el CO₂ es no polar aunque sus enlaces C=O son polares?" },
+        { "process": "evaluar", "question": "¿Es más importante memorizar las fórmulas o entender la geometría molecular? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_mol_01", "level": 1, "process": "Formular", "question": "¿Cuántos enlaces puede formar el carbono (C)?", "expected_answer": "4" },
+        { "id": "ex_maryse_mol_02", "level": 2, "process": "Emplear", "question": "¿Qué molécula se forma al unir 2 H y 1 O?", "expected_answer": "H2O" },
+        { "id": "ex_maryse_mol_03", "level": 3, "process": "Interpréter", "question": "¿Por qué el NH₃ tiene forma piramidal?", "expected_answer": "por el par de electrones no compartido" },
+        { "id": "ex_maryse_mol_04", "level": 4, "process": "Évaluer", "question": "¿Una molécula con enlaces polares puede ser no polar? Justifica.", "expected_answer": "sí, si es simétrica" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "laeticia_quimica_mezclas",
+      "target_user": "Laeticia",
+      "field": "quimica_mezclas",
+      "title": "Mezclas y disoluciones",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El aire que respiras es una mezcla homogénea de gases. El agua de mar es una mezcla homogénea de agua y sal. Pero el agua con aceite es heterogénea: puedes ver las dos fases. Entender las mezclas es el primer paso para separarlas.",
+        "exemple": "El acero es una mezcla homogénea de hierro y carbono. El bronce es cobre y estaño.",
+        "question_reflexion": "¿Qué diferencia hay entre disolver azúcar en agua y mezclar arena con agua?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/states-of-matter-and-intermolecular-forces/mixtures-and-solutions",
+        "skill": "Distinguir mezclas homogéneas y heterogéneas",
+        "estimated_minutes": 20
+      },
+      "labo": {
+        "file": "labos/laeticia_quimica_mezclas.html",
+        "description": "Clasifica mezclas y descubre si son homogéneas o heterogéneas."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre una mezcla homogénea y una heterogénea?" },
+        { "process": "emplear", "question": "Clasifica: agua salada, agua con aceite, aire, granito." },
+        { "process": "interpretar", "question": "¿Por qué el agua y el aceite no se mezclan?" },
+        { "process": "evaluar", "question": "¿Es más fácil separar una mezcla homogénea o una heterogénea? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_mz_01", "level": 1, "process": "Formular", "question": "¿Cuántas fases tiene una mezcla heterogénea?", "expected_answer": "2 o más" },
+        { "id": "ex_laeticia_mz_02", "level": 2, "process": "Emplear", "question": "¿El agua con sal es homogénea o heterogénea?", "expected_answer": "homogénea" },
+        { "id": "ex_laeticia_mz_03", "level": 3, "process": "Interpréter", "question": "¿Por qué no vemos la sal en el agua salada?", "expected_answer": "está disuelta" },
+        { "id": "ex_laeticia_mz_04", "level": 4, "process": "Évaluer", "question": "¿El aire es una mezcla o un compuesto? Justifica.", "expected_answer": "mezcla" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_quimica_separacion",
+      "target_user": "Laeticia",
+      "field": "quimica_separacion",
+      "title": "Métodos de separación de mezclas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El petróleo se separa en gasolina, queroseno y asfalto mediante destilación fraccionada. El agua potable se obtiene por filtración y cloración. Los métodos de separación son la base de la industria química.",
+        "exemple": "Las plantas desalinizadoras separan la sal del agua de mar por evaporación.",
+        "question_reflexion": "¿Cómo separarías la sal de la arena si las tuvieras mezcladas?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/states-of-matter-and-intermolecular-forces/mixtures-and-solutions",
+        "skill": "Aplicar métodos de separación (filtración, destilación, evaporación)",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_quimica_separacion.html",
+        "description": "Elige el método de separación adecuado para cada mezcla."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué método usarías para separar arena y agua?" },
+        { "process": "emplear", "question": "¿Qué método usarías para separar alcohol y agua?" },
+        { "process": "interpretar", "question": "¿Por qué la destilación funciona con líquidos de diferente punto de ebullición?" },
+        { "process": "evaluar", "question": "¿Es mejor filtrar o evaporar para obtener sal del agua salada? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_sp_01", "level": 1, "process": "Formular", "question": "¿Qué método separa un sólido insoluble de un líquido?", "expected_answer": "filtración" },
+        { "id": "ex_laeticia_sp_02", "level": 2, "process": "Emplear", "question": "¿Qué método separa agua y alcohol?", "expected_answer": "destilación" },
+        { "id": "ex_laeticia_sp_03", "level": 3, "process": "Interpréter", "question": "¿Por qué la evaporación deja la sal en el recipiente?", "expected_answer": "el agua se evapora, la sal queda" },
+        { "id": "ex_laeticia_sp_04", "level": 4, "process": "Évaluer", "question": "¿La filtración separa el agua salada? Justifica.", "expected_answer": "no, la sal está disuelta" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_quimica_ecuaciones",
+      "target_user": "Laeticia",
+      "field": "quimica_ecuaciones",
+      "title": "Balanceo de ecuaciones químicas",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "En una reacción química, los átomos no se crean ni se destruyen: solo se reorganizan. Por eso las ecuaciones deben estar balanceadas. El balanceo es la base de la estequiometría y de la industria química.",
+        "exemple": "La combustión del metano: CH₄ + 2O₂ → CO₂ + 2H₂O. Los átomos de C, H y O se conservan.",
+        "question_reflexion": "¿Por qué el número de átomos debe ser igual en ambos lados de la flecha?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/chemistry/chemical-reactions-stoichiometry",
+        "skill": "Balancear ecuaciones químicas por tanteo",
+        "estimated_minutes": 30
+      },
+      "labo": {
+        "file": "labos/laeticia_quimica_ecuaciones.html",
+        "description": "Balancea ecuaciones paso a paso y verifica la conservación de la materia."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué ley exige que las ecuaciones estén balanceadas?" },
+        { "process": "emplear", "question": "Balancea: H₂ + O₂ → H₂O." },
+        { "process": "interpretar", "question": "¿Qué significa el coeficiente 2 delante de H₂O?" },
+        { "process": "evaluar", "question": "¿Se puede balancear una ecuación cambiando los subíndices? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_eq_01", "level": 1, "process": "Formular", "question": "¿Qué ley exige el balanceo?", "expected_answer": "conservación de la masa" },
+        { "id": "ex_laeticia_eq_02", "level": 2, "process": "Emplear", "question": "Balancea: H₂ + O₂ → H₂O. Coeficiente de H₂O?", "expected_answer": "2" },
+        { "id": "ex_laeticia_eq_03", "level": 3, "process": "Interpréter", "question": "¿Qué significa 2H₂ + O₂ → 2H₂O?", "expected_answer": "2 moléculas de H₂ reaccionan con 1 de O₂" },
+        { "id": "ex_laeticia_eq_04", "level": 4, "process": "Évaluer", "question": "¿Por qué no se pueden cambiar los subíndices al balancear? Justifica.", "expected_answer": "cambiaría la sustancia" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 30
+    },
+    {
+      "id": "maryse_biologia_nutricion",
+      "target_user": "Maryse",
+      "field": "biologia_nutricion",
+      "title": "Nutrición y metabolismo",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Cada célula de tu cuerpo necesita energía para funcionar. La obtienes de los alimentos: los carbohidratos, las grasas y las proteínas. Pero no todos los alimentos son iguales: una manzana y un refresco tienen las mismas calorías, pero efectos muy distintos en tu cuerpo.",
+        "exemple": "Un corredor de maratón consume 10,000 calorías en un día. Una persona sedentaria consume 2,000.",
+        "question_reflexion": "¿Por qué es importante leer las etiquetas nutricionales?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/biology/cellular-respiration-and-fermentation",
+        "skill": "Comprender la nutrición y el metabolismo celular",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_biologia_nutricion.html",
+        "description": "Calcula tu gasto energético y descubre qué nutrientes necesita tu cuerpo."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Qué diferencia hay entre nutrición y alimentación?" },
+        { "process": "emplear", "question": "¿Cuántas calorías necesitas al día si haces ejercicio?" },
+        { "process": "interpretar", "question": "¿Por qué una manzana y un refresco tienen las mismas calorías pero no son equivalentes?" },
+        { "process": "evaluar", "question": "¿Las dietas 'milagro' son saludables? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_nu_01", "level": 1, "process": "Formular", "question": "¿Qué nutriente es la principal fuente de energía rápida?", "expected_answer": "carbohidratos" },
+        { "id": "ex_maryse_nu_02", "level": 2, "process": "Emplear", "question": "Si consumes 2000 kcal y gastas 1800, ¿ganas o pierdes peso?", "expected_answer": "ganas" },
+        { "id": "ex_maryse_nu_03", "level": 3, "process": "Interpréter", "question": "¿Por qué un deportista necesita más proteínas?", "expected_answer": "para reparar músculos" },
+        { "id": "ex_maryse_nu_04", "level": 4, "process": "Évaluer", "question": "¿Es saludable eliminar todos los carbohidratos de la dieta? Justifica.", "expected_answer": "no" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "maryse_biologia_reproduccion",
+      "target_user": "Maryse",
+      "field": "biologia_reproduccion",
+      "title": "Reproducción y salud",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "El sistema reproductor es tan importante como el corazón o los pulmones. Conocerlo te permite cuidar tu salud, prevenir enfermedades y tomar decisiones informadas. La educación sexual no es un tabú: es salud pública.",
+        "exemple": "Los métodos anticonceptivos previenen embarazos no deseados e infecciones de transmisión sexual (ITS).",
+        "question_reflexion": "¿Por qué crees que hablar de salud sexual abiertamente es importante?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/biology/human-biology/reproductive-system",
+        "skill": "Comprender el sistema reproductor y la salud sexual",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/maryse_biologia_reproduccion.html",
+        "description": "Explora el sistema reproductor y descubre los métodos de prevención."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cuáles son los principales órganos del sistema reproductor femenino y masculino?" },
+        { "process": "emplear", "question": "¿Qué métodos anticonceptivos conoces?" },
+        { "process": "interpretar", "question": "¿Por qué es importante usar preservativo además de otros métodos?" },
+        { "process": "evaluar", "question": "¿La educación sexual debería ser obligatoria en la escuela? Justifica." }
+      ],
+      "exercises": [
+        { "id": "ex_maryse_rep_01", "level": 1, "process": "Formular", "question": "¿Qué órgano produce los óvulos?", "expected_answer": "ovarios" },
+        { "id": "ex_maryse_rep_02", "level": 2, "process": "Emplear", "question": "¿Qué método anticonceptivo previene las ITS?", "expected_answer": "preservativo" },
+        { "id": "ex_maryse_rep_03", "level": 3, "process": "Interpréter", "question": "¿Por qué la menstruación no ocurre durante el embarazo?", "expected_answer": "el óvulo está fecundado" },
+        { "id": "ex_maryse_rep_04", "level": 4, "process": "Évaluer", "question": "¿La abstinencia es el único método 100% eficaz? Justifica.", "expected_answer": "sí" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    },
+    {
+      "id": "laeticia_biologia_tejidos",
+      "target_user": "Laeticia",
+      "field": "biologia_tejidos",
+      "title": "Los tejidos del cuerpo humano",
+      "contexte": {
+        "titre": "¿Sabías que...?",
+        "texte": "Tu cuerpo tiene 4 tipos básicos de tejidos: epitelial (piel), conectivo (huesos, sangre), muscular (músculos) y nervioso (cerebro). Cada uno tiene células especializadas que trabajan juntas.",
+        "exemple": "El tejido muscular cardíaco tiene células ramificadas que se contraen rítmicamente.",
+        "question_reflexion": "¿Por qué crees que el cuerpo necesita tejidos diferentes en lugar de un solo tipo de célula?"
+      },
+      "khan": {
+        "link": "https://es.khanacademy.org/science/biology/principles-of-physiology/body-structure-and-homeostasis",
+        "skill": "Identificar los 4 tipos de tejidos y sus funciones",
+        "estimated_minutes": 25
+      },
+      "labo": {
+        "file": "labos/laeticia_biologia_tejidos.html",
+        "description": "Explora los 4 tejidos y descubre qué células los componen."
+      },
+      "carnet": [
+        { "process": "formular", "question": "¿Cuáles son los 4 tipos básicos de tejidos?" },
+        { "process": "emplear", "question": "¿Qué tejido forma la piel?" },
+        { "process": "interpretar", "question": "¿Por qué el tejido nervioso puede transmitir señales eléctricas?" },
+        { "process": "evaluar", "question": "¿Los tejidos pueden regenerarse? Justifica con ejemplos." }
+      ],
+      "exercises": [
+        { "id": "ex_laeticia_tj_01", "level": 1, "process": "Formular", "question": "¿Cuántos tipos básicos de tejidos hay?", "expected_answer": "4" },
+        { "id": "ex_laeticia_tj_02", "level": 2, "process": "Emplear", "question": "¿Qué tejido forma los huesos?", "expected_answer": "conectivo" },
+        { "id": "ex_laeticia_tj_03", "level": 3, "process": "Interpréter", "question": "¿Qué tejido forma el corazón?", "expected_answer": "muscular" },
+        { "id": "ex_laeticia_tj_04", "level": 4, "process": "Évaluer", "question": "¿El tejido nervioso se regenera? Justifica.", "expected_answer": "muy poco" }
+      ],
+      "prerequisite": null,
+      "xp_reward": 25
+    }
+  ]
+}

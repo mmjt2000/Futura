@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Funciones en Python</title>
+<style>
+  :root { --bg-primary: #0a0e27; --bg-card: rgba(255,255,255,0.04); --border-card: rgba(255,255,255,0.1); --text-primary: #ffffff; --text-secondary: #94a3b8; --text-muted: #64748b; --accent-pink: #f472b6; --accent-blue: #38bdf8; --accent-green: #22c55e; --accent-orange: #f59e0b; --accent-purple: #a78bfa; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+  .editor-panel, .output-panel { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; }
+  h3 { font-size: 14px; color: var(--accent-purple); letter-spacing: 1.5px; margin-bottom: 12px; }
+  textarea { width: 100%; height: 300px; padding: 16px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-card); border-radius: 10px; color: #22c55e; font-family: "Courier New", monospace; font-size: 13px; line-height: 1.6; resize: vertical; }
+  textarea:focus { outline: none; border-color: var(--accent-purple); }
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+  .btn { padding: 10px 20px; border-radius: 10px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: #fff; }
+  .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text-primary); border: 1px solid var(--border-card); }
+  .output-box { background: rgba(0,0,0,0.5); border: 1px solid var(--border-card); border-radius: 10px; padding: 16px; min-height: 300px; font-family: "Courier New", monospace; font-size: 13px; line-height: 1.6; color: var(--accent-green); white-space: pre-wrap; overflow-y: auto; max-height: 400px; }
+  .output-box .error { color: #ef4444; }
+  .output-box .info { color: var(--text-muted); font-style: italic; }
+  .info-box { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; margin-top: 20px; }
+  .info-box h3 { color: var(--accent-orange); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px; }
+  .info-box code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; color: var(--accent-orange); font-family: monospace; }
+  .btn-back { display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-card); color: var(--text-primary); border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🐍 Laboratorio: Funciones en Python</h1>
+  <div class="subtitle">Aprende a crear y usar funciones para organizar tu código.</div>
+  <div class="lab-layout">
+    <div class="editor-panel">
+      <h3>📝 EDITOR DE CÓDIGO</h3>
+      <textarea id="code"># Ejemplo: Una función que suma dos números
+def sumar(a, b):
+    return a + b
+
+resultado = sumar(5, 3)
+print("La suma es:", resultado)
+
+# Tu turno: crea una función que calcule el área de un rectángulo
+</textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="run-btn">▶ Ejecutar</button>
+        <button class="btn btn-secondary" id="clear-btn">🗑 Limpiar</button>
+      </div>
+    </div>
+    <div class="output-panel">
+      <h3>📤 SALIDA (STDOUT)</h3>
+      <div class="output-box" id="output"><span class="info">Presiona "Ejecutar" para ver el resultado.</span></div>
+    </div>
+  </div>
+  <div class="info-box">
+    <h3>💡 ¿QUÉ ES UNA FUNCIÓN?</h3>
+    <p>Una <b>función</b> es un bloque de código que realiza una tarea específica. Se define con <code>def</code> y se puede reutilizar muchas veces.</p>
+    <p><b>Ejemplo:</b> <code>def sumar(a, b): return a + b</code> crea una función que suma dos números.</p>
+    <p><b>Tu desafío:</b> crea una función <code>area_rectangulo(base, altura)</code> que devuelva el área.</p>
+  </div>
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+<script>
+let pyodide = null;
+async function initPyodide() {
+  try { pyodide = await loadPyodide(); } catch (e) { document.getElementById('output').innerHTML = `<span class="error">Error al cargar Pyodide: ${e.message}</span>`; }
+}
+async function runCode() {
+  const code = document.getElementById('code').value;
+  const output = document.getElementById('output');
+  if (!pyodide) { output.innerHTML = `<span class="error">Pyodide aún se está cargando, espera un momento...</span>`; return; }
+  output.innerHTML = `<span class="info">Ejecutando...</span>`;
+  try {
+    pyodide.runPython(`import sys; from io import StringIO; sys.stdout = StringIO()`);
+    pyodide.runPython(code);
+    const result = pyodide.runPython("sys.stdout.getvalue()");
+    output.textContent = result.trim() ? result : "(Sin salida - el código se ejecutó sin errores)";
+  } catch (error) { output.innerHTML = `<span class="error">${error.message}</span>`; }
+}
+document.getElementById('run-btn').addEventListener('click', runCode);
+document.getElementById('clear-btn').addEventListener('click', () => { document.getElementById('output').innerHTML = `<span class="info">Presiona "Ejecutar" para ver el resultado.</span>`; });
+initPyodide();
+</script>
+</body>
+</html>

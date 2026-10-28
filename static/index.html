@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e27">
+<title>FUTURA — Inicio</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header">
+    <h1>FUTURA</h1>
+    <div class="header-right">
+      <div class="theme-switch" id="themeSwitch" title="Cambiar tema">
+        <div class="knob" id="themeKnob">🌙</div>
+      </div>
+      <button class="avatar" id="avatarBtn" title="Cambiar de perfil">M</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:14px 16px;">
+    <div style="font-size:14px;color:var(--text-secondary);">
+      Hola, <b id="user-name" style="color:var(--text-primary);">…</b> 👋
+    </div>
+  </div>
+
+  <div class="card" id="xp-card">
+    <div class="card-title">🏅 MI PROGRESO</div>
+    <div class="loading">Cargando…</div>
+  </div>
+
+  <div class="card" id="wellbeing-card">
+    <div class="card-title">🌱 MI CUERPO HOY</div>
+    <div class="loading">Cargando…</div>
+  </div>
+
+  <div id="parcours-container">
+    <div class="loading">Cargando tus parcours…</div>
+  </div>
+</div>
+
+<div id="nav"></div>
+
+<div class="overlay" id="wellbeingOverlay">
+  <div class="modal">
+    <h2>🌱 ¿Cómo estás hoy?</h2>
+    <div class="field-label">Horas de sueño</div>
+    <input type="number" id="wb-sleep" step="0.5" min="0" max="24" placeholder="8">
+    <div class="field-label">Minutos de movimiento</div>
+    <input type="number" id="wb-move" min="0" max="600" placeholder="30">
+    <div class="field-label">¿Cómo te sientes?</div>
+    <select id="wb-mood">
+      <option value="">Prefiero no decirlo</option>
+      <option value="feliz">😊 Feliz</option>
+      <option value="tranquila">😌 Tranquila</option>
+      <option value="neutral">😐 Neutral</option>
+      <option value="triste">😞 Triste</option>
+      <option value="ansiosa">😰 Ansiosa</option>
+      <option value="enojada">😠 Enojada</option>
+    </select>
+    <div class="field-label">Energía (1 a 5)</div>
+    <input type="number" id="wb-focus" min="1" max="5" placeholder="3">
+    <div class="field-label">¿Algo que quieras anotar? (opcional)</div>
+    <textarea id="wb-note" rows="2" placeholder="Solo si quieres compartirlo"></textarea>
+    <div class="actions">
+      <button class="btn btn-ghost" id="wb-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="wb-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+<script>
+const CATEGORIAS = {
+  matematicas: {
+    label: "📐 Matemáticas",
+    fields: ["ecuaciones_cuadraticas", "medidas_tendencia_central", "sistemas_ecuaciones",
+      "teorema_pitagoras", "razones_trigonometricas", "poligonos_semejantes",
+      "probabilidad", "sucesiones_patrones", "circulo_elementos", "ley_senos_cosenos",
+      "poligonos_regulares", "funciones_trigonometricas", "estadisticas",
+      "modelado_latidos_corazon"],
+  },
+  quimica: {
+    label: "🧪 Química",
+    fields: ["quimica_ph", "quimica_volcan", "quimica_tabla_periodica",
+      "quimica_moleculas", "quimica_mezclas", "quimica_separacion", "quimica_ecuaciones"],
+  },
+  fisica: { label: "⚡ Física", fields: ["fisica_fuego", "fisica_circuitos"] },
+  biologia: {
+    label: "🧬 Biología",
+    fields: ["biologia_celula", "biologia_corazon", "genetica", "biologia_nutricion",
+      "biologia_reproduccion", "biologia_tejidos"],
+  },
+  tecnologia: { label: "💻 Tecnología", fields: ["tech_boucles", "tech_funciones"] },
+  finanzas: { label: "💰 Finanzas", fields: ["finanzas_interes", "finanzas_presupuesto"] },
+};
+
+let user = null;
+let progressMap = {};
+
+function fieldLabel(field) {
+  return field.replace(/_/g, " ").toUpperCase();
+}
+
+function statusOf(id) {
+  const p = progressMap[id];
+  if (!p) return { cls: "locked", text: "Nuevo" };
+  if (p.completed) return { cls: "done", text: "✓ Terminado" };
+  return { cls: "progress", text: `${p.etapes.length}/6` };
+}
+
+function renderSummary(s) {
+  const next = s.next_badge
+    ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+         Próximo distintivo : ${Futura.escapeHtml(s.next_badge.name)} — ${s.next_badge.threshold} XP
+       </div>`
+    : `<div style="font-size:11px;color:var(--accent-green);margin-top:8px;">¡Todos los distintivos ganados! 👑</div>`;
+
+  document.getElementById("xp-card").innerHTML = `
+    <div class="card-title">🏅 MI PROGRESO</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+      <div style="font-size:22px;font-weight:800;">${s.xp} <span style="font-size:12px;color:var(--text-muted);">/ ${s.xp_max} XP</span></div>
+      <div style="font-size:12px;color:var(--text-secondary);">${s.parcours_done}/${s.parcours_total} parcours</div>
+    </div>
+    <div class="bar"><div class="bar-fill" style="width:${s.xp_percent}%"></div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+      ${s.badges.map(b => `<span class="chip done">${b.icon} ${Futura.escapeHtml(b.name)}</span>`).join("") || `<span class="chip">Ningún distintivo todavía</span>`}
+    </div>
+    ${next}
+  `;
+}
+
+function renderWellbeing(w) {
+  const card = document.getElementById("wellbeing-card");
+  if (!w.exists) {
+    card.innerHTML = `
+      <div class="card-title">🌱 MI CUERPO HOY</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+        Todavía no has registrado nada hoy. Es opcional.
+      </div>
+      <button class="btn btn-primary btn-sm" id="wb-open">Registrar</button>
+    `;
+  } else {
+    const moodIcons = { feliz: "😊", tranquila: "😌", neutral: "😐", triste: "😞", ansiosa: "😰", enojada: "😠" };
+    card.innerHTML = `
+      <div class="card-title">🌱 MI CUERPO HOY</div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;background:var(--bg-elevated);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:20px;">🌙</div>
+          <div style="font-size:16px;font-weight:700;">${w.sleep_hours ?? "—"}</div>
+          <div style="font-size:10px;color:var(--text-muted);">Sueño</div>
+        </div>
+        <div style="flex:1;background:var(--bg-elevated);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:20px;">🏃</div>
+          <div style="font-size:16px;font-weight:700;">${w.movement_minutes ?? "—"}</div>
+          <div style="font-size:10px;color:var(--text-muted);">Movimiento</div>
+        </div>
+        <div style="flex:1;background:var(--bg-elevated);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:20px;">${moodIcons[w.mood] || "💭"}</div>
+          <div style="font-size:16px;font-weight:700;">${w.focus_level ? w.focus_level + "/5" : "—"}</div>
+          <div style="font-size:10px;color:var(--text-muted);">Energía</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="wb-open" style="margin-top:12px;">Actualizar</button>
+    `;
+  }
+  document.getElementById("wb-open").addEventListener("click", openWellbeing);
+}
+
+function renderParcours(list) {
+  const grouped = {};
+  list.forEach((p) => {
+    let cat = "otros";
+    for (const [key, value] of Object.entries(CATEGORIAS)) {
+      if (value.fields.includes(p.field)) { cat = key; break; }
+    }
+    (grouped[cat] = grouped[cat] || []).push(p);
+  });
+
+  let html = "";
+  const order = [...Object.keys(CATEGORIAS), "otros"];
+  order.forEach((catKey) => {
+    const items = grouped[catKey];
+    if (!items || !items.length) return;
+    const label = CATEGORIAS[catKey] ? CATEGORIAS[catKey].label : "📚 Otros";
+    html += `<h3 class="section-title">${label}</h3><div class="grid-2">`;
+    items.forEach((p) => {
+      const st = statusOf(p.id);
+      html += `
+        <div class="parcours-card">
+          <div class="field">${fieldLabel(p.field)}</div>
+          <div class="title">${Futura.escapeHtml(p.title)}</div>
+          <div class="meta">+${p.xp_reward} XP <span class="chip ${st.cls}" style="margin-left:6px;">${st.text}</span></div>
+          <a class="cta" href="/static/parcours_template.html?id=${encodeURIComponent(p.id)}">
+            ${st.cls === "done" ? "Repasar" : st.cls === "progress" ? "Continuar" : "Empezar"} →
+          </a>
+        </div>`;
+    });
+    html += "</div>";
+  });
+
+  document.getElementById("parcours-container").innerHTML =
+    html || `<div class="empty">No hay parcours asignados.</div>`;
+}
+
+async function loadUser() {
+  user = await Futura.currentUser();
+  if (!user) {
+    document.getElementById("parcours-container").innerHTML =
+      `<div class="empty">Aucun profil en base. Redémarre le serveur.</div>`;
+    return;
+  }
+  document.getElementById("user-name").textContent = user.name;
+  document.getElementById("avatarBtn").textContent = user.name.charAt(0).toUpperCase();
+
+  const [summary, progress, parcours, wellbeing] = await Promise.all([
+    Futura.api(`/api/users/${user.id}/summary`),
+    Futura.api(`/api/users/${user.id}/progress`),
+    Futura.api(`/api/parcours/?target=${encodeURIComponent(user.name)}`),
+    Futura.api(`/api/wellbeing/${user.id}`).catch(() => ({ exists: false })),
+  ]);
+
+  progressMap = progress;
+  renderSummary(summary);
+  renderWellbeing(wellbeing);
+  renderParcours(parcours);
+}
+
+/* ---------- bien-être ---------- */
+function openWellbeing() {
+  document.getElementById("wellbeingOverlay").classList.add("open");
+}
+
+async function saveWellbeing() {
+  const value = (id) => document.getElementById(id).value;
+  const payload = {};
+  if (value("wb-sleep")) payload.sleep_hours = Number(value("wb-sleep"));
+  if (value("wb-move")) payload.movement_minutes = Number(value("wb-move"));
+  if (value("wb-mood")) payload.mood = value("wb-mood");
+  if (value("wb-focus")) payload.focus_level = Number(value("wb-focus"));
+  payload.reflection_note = value("wb-note") || null;
+
+  try {
+    await Futura.api(`/api/wellbeing/${user.id}`, { method: "POST", body: JSON.stringify(payload) });
+    document.getElementById("wellbeingOverlay").classList.remove("open");
+    const w = await Futura.api(`/api/wellbeing/${user.id}`);
+    renderWellbeing(w);
+  } catch (error) {
+    alert("No se pudo guardar: " + error.message);
+  }
+}
+
+/* ---------- démarrage ---------- */
+Futura.initTheme();
+Futura.mountThemeSwitch();
+Futura.mountNav("inicio");
+
+document.getElementById("wb-cancel").addEventListener("click", () => {
+  document.getElementById("wellbeingOverlay").classList.remove("open");
+});
+document.getElementById("wb-save").addEventListener("click", saveWellbeing);
+
+document.getElementById("avatarBtn").addEventListener("click", async () => {
+  await Futura.switchUser();
+  await loadUser();
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+
+loadUser().catch((error) => {
+  document.getElementById("parcours-container").innerHTML =
+    `<div class="empty">⚠️ No se pudo cargar. ${Futura.escapeHtml(error.message)}</div>`;
+});
+</script>
+</body>
+</html>

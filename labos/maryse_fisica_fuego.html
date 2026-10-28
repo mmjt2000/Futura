@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: El Triángulo del Fuego</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-orange), var(--accent-red));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group h4 {
+    font-size: 11px; color: var(--text-muted);
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .btn {
+    flex: 1; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--border-card);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.1); }
+  .btn.active { background: rgba(239,68,68,0.2); border-color: var(--accent-red); color: var(--accent-red); }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔥 Laboratorio: El Triángulo del Fuego</h1>
+  <div class="subtitle">Para que haya fuego, necesitas 3 elementos. Elimina uno y observa qué pasa.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <h4>🕯️ CONTROL DE LA LLAMA</h4>
+          <div class="btn-row">
+            <button class="btn" id="btn-encender" onclick="encender()">🔥 Encender</button>
+            <button class="btn" onclick="apagarTodo()">💨 Apagar todo</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <h4>🧪 QUITAR UN ELEMENTO</h4>
+          <div class="btn-row">
+            <button class="btn" id="btn-combustible" onclick="toggleElemento('combustible')">🪵 Combustible</button>
+            <button class="btn" id="btn-calor" onclick="toggleElemento('calor')">🔥 Calor</button>
+            <button class="btn" id="btn-oxigeno" onclick="toggleElemento('oxigeno')">💨 Oxígeno</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Estado de la llama</div>
+        <span class="result-big" id="step-estado">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Los 3 elementos del fuego</div>
+        <div id="step-elementos" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : ¿Por qué se apaga?</div>
+        <div id="step-razon" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Aplicación real</div>
+        <div id="step-aplicacion" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🔥 EL TRIÁNGULO DEL FUEGO</h3>
+      <p>Para que exista fuego, se necesitan <b>tres elementos</b> al mismo tiempo:</p>
+      <p><b>1. Combustible</b> (la cera, la madera, el papel).</p>
+      <p><b>2. Calor</b> (una chispa, una cerilla).</p>
+      <p><b>3. Oxígeno</b> (el aire que respiramos).</p>
+      <p>Si falta uno, el fuego se apaga.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿CÓMO APAGAN LOS BOMBEROS?</h3>
+      <p>Los bomberos usan el triángulo del fuego para apagar incendios:</p>
+      <p><b>Agua:</b> elimina el calor.</p>
+      <p><b>Espuma:</b> elimina el oxígeno.</p>
+      <p><b>Cortafuegos:</b> elimina el combustible.</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> Si eliminas uno de los tres, el fuego se apaga. ¡Por eso soplar una vela funciona (eliminas el calor)!
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let encendida = false;
+let combustible = true;
+let calor = true;
+let oxigeno = true;
+
+function encender() {
+  encendida = true;
+  update();
+}
+
+function apagarTodo() {
+  encendida = false;
+  update();
+}
+
+function toggleElemento(elemento) {
+  if (elemento === 'combustible') {
+    combustible = !combustible;
+    document.getElementById('btn-combustible').classList.toggle('active', !combustible);
+  }
+  if (elemento === 'calor') {
+    calor = !calor;
+    document.getElementById('btn-calor').classList.toggle('active', !calor);
+  }
+  if (elemento === 'oxigeno') {
+    oxigeno = !oxigeno;
+    document.getElementById('btn-oxigeno').classList.toggle('active', !oxigeno);
+  }
+  
+  // Si falta algún elemento, se apaga
+  if (!combustible || !calor || !oxigeno) {
+    encendida = false;
+  }
+  
+  update();
+}
+
+function drawFlame() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const baseY = H - 80;
+
+  // Vela (si hay combustible)
+  if (combustible) {
+    ctx.fillStyle = '#f5f5dc';
+    ctx.fillRect(cx - 25, baseY, 50, 80);
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(cx - 25, baseY, 50, 80);
+    
+    // Mèche
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, baseY);
+    ctx.lineTo(cx, baseY - 10);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(cx - 25, baseY, 50, 80);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('(sin combustible)', cx, baseY + 45);
+  }
+
+  // Flamme (si encendida)
+  if (encendida && combustible && calor && oxigeno) {
+    const flicker = 1 + Math.sin(Date.now() / 100) * 0.1;
+    const flameH = 80 * flicker;
+    const flameW = 40 * flicker;
+
+    // Flamme extérieure (orange)
+    ctx.fillStyle = '#ff6600';
+    ctx.beginPath();
+    ctx.moveTo(cx, baseY - 10);
+    ctx.quadraticCurveTo(cx - flameW, baseY - 10 - flameH * 0.5, cx, baseY - 10 - flameH);
+    ctx.quadraticCurveTo(cx + flameW, baseY - 10 - flameH * 0.5, cx, baseY - 10);
+    ctx.fill();
+
+    // Flamme intérieure (jaune)
+    ctx.fillStyle = '#ffcc00';
+    ctx.beginPath();
+    ctx.moveTo(cx, baseY - 10);
+    ctx.quadraticCurveTo(cx - flameW * 0.5, baseY - 10 - flameH * 0.3, cx, baseY - 10 - flameH * 0.7);
+    ctx.quadraticCurveTo(cx + flameW * 0.5, baseY - 10 - flameH * 0.3, cx, baseY - 10);
+    ctx.fill();
+
+    // Cœur bleu (combustion complète)
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY - 20, 6, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Fumée si la vela existait mais s'est éteinte
+    if (combustible && !encendida) {
+      ctx.strokeStyle = 'rgba(150,150,150,0.3)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, baseY - 10);
+      ctx.bezierCurveTo(cx - 10, baseY - 40, cx + 10, baseY - 60, cx, baseY - 100);
+      ctx.stroke();
+    }
+  }
+
+  // Indicateur de température/oxygène
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = calor ? '#f59e0b' : '#64748b';
+  ctx.fillText(`🔥 Calor: ${calor ? 'ON' : 'OFF'}`, 20, 40);
+  ctx.fillStyle = oxigeno ? '#38bdf8' : '#64748b';
+  ctx.fillText(`💨 Oxígeno: ${oxigeno ? 'ON' : 'OFF'}`, 20, 65);
+  ctx.fillStyle = combustible ? '#22c55e' : '#64748b';
+  ctx.fillText(`🪵 Combustible: ${combustible ? 'ON' : 'OFF'}`, 20, 90);
+}
+
+function update() {
+  const estadoEl = document.getElementById('step-estado');
+  if (encendida && combustible && calor && oxigeno) {
+    estadoEl.innerHTML = '<span style="color:#ef4444;">🔥 ENCENDIDA</span>';
+  } else {
+    estadoEl.innerHTML = '<span style="color:#64748b;">💨 APAGADA</span>';
+  }
+
+  const elementosEl = document.getElementById('step-elementos');
+  elementosEl.innerHTML = 
+    `🪵 Combustible: ${combustible ? '<span style="color:#22c55e;">✓ Presente</span>' : '<span style="color:#ef4444;">✗ Falta</span>'}<br>` +
+    `🔥 Calor: ${calor ? '<span style="color:#22c55e;">✓ Presente</span>' : '<span style="color:#ef4444;">✗ Falta</span>'}<br>` +
+    `💨 Oxígeno: ${oxigeno ? '<span style="color:#22c55e;">✓ Presente</span>' : '<span style="color:#ef4444;">✗ Falta</span>'}`;
+
+  const razonEl = document.getElementById('step-razon');
+  const aplicacionEl = document.getElementById('step-aplicacion');
+
+  if (!combustible) {
+    razonEl.innerHTML = 'Falta el <b style="color:#22c55e;">combustible</b>. Sin cera, no hay nada que quemar.';
+    aplicacionEl.textContent = 'Los bomberos usan cortafuegos para quitar el combustible.';
+  } else if (!calor) {
+    razonEl.innerHTML = 'Falta el <b style="color:#f59e0b;">calor</b>. Sin temperatura suficiente, la reacción no se mantiene.';
+    aplicacionEl.textContent = 'Los bomberos usan agua para bajar la temperatura.';
+  } else if (!oxigeno) {
+    razonEl.innerHTML = 'Falta el <b style="color:#38bdf8;">oxígeno</b>. Sin O₂, la combustión no es posible.';
+    aplicacionEl.textContent = 'Los bomberos usan espuma para ahogar el fuego.';
+  } else if (encendida) {
+    razonEl.innerHTML = '<span style="color:#22c55e;">✓ Los 3 elementos están presentes. La llama arde.</span>';
+    aplicacionEl.textContent = 'Un incendio se combate eliminando al menos uno de los tres elementos.';
+  } else {
+    razonEl.innerHTML = '<span style="color:#64748b;">La vela no está encendida. Pulsa "🔥 Encender" o enciende la cerilla.</span>';
+    aplicacionEl.textContent = '—';
+  }
+
+  drawFlame();
+}
+
+// Animation continue de la flamme
+function animate() {
+  if (encendida && combustible && calor && oxigeno) {
+    drawFlame();
+  }
+  requestAnimationFrame(animate);
+}
+
+animate();
+update();
+</script>
+</body>
+</html>

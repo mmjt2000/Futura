@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Polígonos Regulares</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-purple); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-purple); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔷 Laboratorio: Polígonos Regulares</h1>
+  <div class="subtitle">Elige el número de lados y observa cómo cambian los ángulos y la forma.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Número de lados <b>n</b> <span id="val-n">6</span></label>
+          <input type="range" id="range-n" min="3" max="12" step="1" value="6">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Polígono</div>
+        <div id="step-name" style="font-size:13px;font-weight:700;color:var(--accent-blue);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Suma de ángulos interiores</div>
+        <div class="formula" id="step-sum">—</div>
+        <span class="result-big" id="step-sum-result">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Ángulo interior (cada uno)</div>
+        <div class="formula" id="step-interior">—</div>
+        <span class="result-big" id="step-interior-result">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Ángulo exterior (cada uno)</div>
+        <div class="formula" id="step-exterior">—</div>
+        <span class="result-big" id="step-exterior-result">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 5 : Ángulo central</div>
+        <div class="formula" id="step-central">—</div>
+        <span class="result-big" id="step-central-result">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🔷 ¿QUÉ ES UN POLÍGONO REGULAR?</h3>
+      <p>Un <b>polígono regular</b> tiene todos sus lados iguales y todos sus ángulos iguales. Ejemplos: el triángulo equilátero, el cuadrado, el pentágono regular, el hexágono regular.</p>
+      <p>Todos los polígonos regulares se pueden inscribir en un círculo.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 LAS FÓRMULAS</h3>
+      <p><b>Suma de ángulos interiores:</b> (n - 2) × 180°</p>
+      <p><b>Ángulo interior:</b> (n - 2) × 180° / n</p>
+      <p><b>Ángulo exterior:</b> 360° / n</p>
+      <p><b>Ángulo central:</b> 360° / n</p>
+      <div class="highlight">
+        <b>Curiosidad:</b> Los panales de abejas son hexágonos regulares. ¿Por qué? Porque es la forma que ocupa más espacio con menos material. ¡La naturaleza es sabia!
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let n = 6;
+
+document.getElementById('range-n').addEventListener('input', (e) => {
+  n = parseInt(e.target.value);
+  document.getElementById('val-n').textContent = n;
+  update();
+});
+
+function drawPolygon(n) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const cy = H / 2;
+  const radius = 140;
+
+  // Cercle extérieur
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Sommets
+  const vertices = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+    vertices.push({
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle)
+    });
+  }
+
+  // Polygone
+  ctx.fillStyle = 'rgba(56,189,248,0.15)';
+  ctx.beginPath();
+  ctx.moveTo(vertices[0].x, vertices[0].y);
+  for (let i = 1; i < n; i++) ctx.lineTo(vertices[i].x, vertices[i].y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Rayons vers les sommets
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  vertices.forEach(v => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(v.x, v.y);
+    ctx.stroke();
+  });
+
+  // Centre
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Label angle au centre (pour le 1er secteur)
+  const a1 = (1 / n) * Math.PI * 2 - Math.PI / 2;
+  const a0 = -Math.PI / 2;
+  ctx.strokeStyle = 'rgba(245,158,11,0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, a0, a1);
+  ctx.stroke();
+  
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'center';
+  const labelAngle = a0 + (a1 - a0) / 2;
+  ctx.fillText(`${(360/n).toFixed(1)}°`, cx + 55 * Math.cos(labelAngle), cy + 55 * Math.sin(labelAngle) + 4);
+}
+
+function update() {
+  const nombres = {
+    3: 'Triángulo equilátero',
+    4: 'Cuadrado',
+    5: 'Pentágono regular',
+    6: 'Hexágono regular',
+    7: 'Heptágono regular',
+    8: 'Octágono regular',
+    9: 'Eneágono regular',
+    10: 'Decágono regular',
+    11: 'Endecágono regular',
+    12: 'Dodecágono regular'
+  };
+
+  const sum = (n - 2) * 180;
+  const interior = ((n - 2) * 180) / n;
+  const exterior = 360 / n;
+  const central = 360 / n;
+
+  document.getElementById('step-name').textContent = nombres[n] || `${n}-gono regular`;
+
+  document.getElementById('step-sum').textContent = `Suma = (${n} - 2) × 180°`;
+  document.getElementById('step-sum-result').textContent = `= ${sum}°`;
+
+  document.getElementById('step-interior').textContent = `Ángulo int. = ${sum}° / ${n}`;
+  document.getElementById('step-interior-result').textContent = `= ${interior.toFixed(2)}°`;
+
+  document.getElementById('step-exterior').textContent = `Ángulo ext. = 360° / ${n}`;
+  document.getElementById('step-exterior-result').textContent = `= ${exterior.toFixed(2)}°`;
+
+  document.getElementById('step-central').textContent = `Ángulo central = 360° / ${n}`;
+  document.getElementById('step-central-result').textContent = `= ${central.toFixed(2)}°`;
+
+  drawPolygon(n);
+}
+
+update();
+</script>
+</body>
+</html>

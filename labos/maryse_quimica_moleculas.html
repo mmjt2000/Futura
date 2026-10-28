@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Constructor de Moléculas 3D</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27; --bg-card: rgba(255,255,255,0.04); --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff; --text-secondary: #94a3b8; --text-muted: #64748b;
+    --accent-pink: #f472b6; --accent-blue: #38bdf8; --accent-green: #22c55e;
+    --accent-orange: #f59e0b; --accent-purple: #a78bfa; --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { padding: 10px 18px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .tab:hover { background: rgba(255,255,255,0.08); }
+  .tab.active { background: rgba(167,139,250,0.15); border-color: var(--accent-purple); color: var(--accent-purple); }
+  .lab-layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+  @media (max-width: 1000px) { .lab-layout { grid-template-columns: 1fr; } }
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 10px; height: 500px; position: relative; }
+  #three-canvas { width: 100%; height: 100%; border-radius: 8px; background: #000; }
+  .controls { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 16px; }
+  .controls h3 { font-size: 12px; color: var(--accent-purple); letter-spacing: 1.5px; margin-bottom: 12px; }
+  .molecule-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .molecule-btn { padding: 10px 6px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .molecule-btn:hover { background: rgba(255,255,255,0.08); }
+  .molecule-btn.active { background: rgba(167,139,250,0.15); border-color: var(--accent-purple); color: var(--accent-purple); }
+  .molecule-btn .formula { font-size: 13px; display: block; margin-bottom: 2px; }
+  .molecule-btn .name { font-size: 9px; color: var(--text-muted); }
+  .right-col { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; height: fit-content; }
+  .right-col h3 { font-size: 12px; color: var(--accent-orange); letter-spacing: 1.5px; margin-bottom: 12px; }
+  .molecule-header { text-align: center; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 16px; border: 2px solid var(--accent-purple); }
+  .molecule-header .formula-big { font-size: 32px; font-weight: 800; color: var(--accent-purple); margin-bottom: 4px; }
+  .molecule-header .name-big { font-size: 13px; color: var(--text-secondary); }
+  .info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--text-secondary); }
+  .info-row .value { font-weight: 700; color: var(--accent-blue); }
+  .polarity-box { margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.6; }
+  .polarity-box.polar { background: rgba(239,68,68,0.1); border-left: 3px solid var(--accent-red); color: #fca5a5; }
+  .polarity-box.nonpolar { background: rgba(34,197,94,0.1); border-left: 3px solid var(--accent-green); color: #86efac; }
+  .polarity-box b { font-weight: 700; }
+  .explanation-box { margin-top: 12px; padding: 12px; background: rgba(56,189,248,0.08); border-left: 3px solid var(--accent-blue); border-radius: 8px; font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
+  .explanation-box b { color: var(--accent-blue); }
+  
+  /* Grille de 15 atomes */
+  .atom-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+  .atom-btn { padding: 8px 4px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .atom-btn:hover { background: rgba(255,255,255,0.08); }
+  .atom-btn.active { background: rgba(56,189,248,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
+  .atom-btn .valence { font-size: 8px; color: var(--text-muted); display: block; font-weight: 400; }
+  
+  .bond-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .bond-btn { padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .bond-btn:hover { background: rgba(255,255,255,0.08); }
+  .bond-btn.active { background: rgba(245,158,11,0.15); border-color: var(--accent-orange); color: var(--accent-orange); }
+  .construction-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .construction-actions .btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .btn-delete { background: rgba(239,68,68,0.2); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-clear { background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--border-card); }
+  .btn-check { background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); color: #fff; }
+  .construction-feedback { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.6; display: none; }
+  .construction-feedback.success { display: block; background: rgba(34,197,94,0.15); border-left: 3px solid var(--accent-green); color: #86efac; }
+  .construction-feedback.error { display: block; background: rgba(239,68,68,0.15); border-left: 3px solid var(--accent-red); color: #fca5a5; }
+  .construction-feedback.info { display: block; background: rgba(56,189,248,0.15); border-left: 3px solid var(--accent-blue); color: #7dd3fc; }
+  .atom-counter { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-align: center; }
+  .btn-back { display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-card); color: var(--text-primary); border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔬 Constructor de Moléculas 3D</h1>
+  <div class="subtitle">Explora moléculas conocidas o construye las tuyas propias con 15 átomos diferentes.</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('library')">📚 Biblioteca</button>
+    <button class="tab" onclick="setTab('build')">🔨 Constructor</button>
+  </div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container"><div id="three-canvas"></div></div>
+      
+      <div id="library-controls" class="controls">
+        <h3>🧪 MOLÉCULAS PREDEFINIDAS</h3>
+        <div class="molecule-grid" id="molecule-grid"></div>
+      </div>
+      
+      <div id="build-controls" class="controls" style="display:none;">
+        <h3>🔨 CONSTRUYE TU MOLÉCULA</h3>
+        <div class="atom-counter" id="atom-counter">0 átomos · 0 enlaces</div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">1. Añade un átomo (15 disponibles):</div>
+          <div class="atom-selector" id="atom-selector"></div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">2. Tipo de enlace:</div>
+          <div class="bond-selector">
+            <button class="bond-btn active" data-bond="1" onclick="selectBond(1)">— Simple</button>
+            <button class="bond-btn" data-bond="2" onclick="selectBond(2)">= Doble</button>
+            <button class="bond-btn" data-bond="3" onclick="selectBond(3)">≡ Triple</button>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+          3. Haz clic en un átomo para seleccionarlo (se iluminará). Luego haz clic en otro para unirlos.
+        </div>
+        <div class="construction-actions">
+          <button class="btn btn-check" onclick="checkMolecule()">✓ Verificar</button>
+          <button class="btn btn-delete" onclick="deleteLast()">🗑 Borrar último</button>
+          <button class="btn btn-clear" onclick="clearAll()">Limpiar todo</button>
+        </div>
+        <div id="construction-feedback" class="construction-feedback"></div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3 id="detail-title">🔍 DETALLES</h3>
+      <div id="molecule-detail">
+        <p style="color:var(--text-muted);text-align:center;padding:20px 0;font-size:13px;">Elige una molécula o construye la tuya.</p>
+      </div>
+    </div>
+  </div>
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================
+// 15 ATOMES DISPONIBLES
+// ============================================
+const availableAtoms = {
+  H: { color: 0xffffff, radius: 0.3, valence: 1 },
+  C: { color: 0x444444, radius: 0.55, valence: 4 },
+  N: { color: 0x3366ff, radius: 0.5, valence: 3 },
+  O: { color: 0xff3333, radius: 0.5, valence: 2 },
+  Na: { color: 0xffaa00, radius: 0.6, valence: 1 },
+  Mg: { color: 0x88cc00, radius: 0.6, valence: 2 },
+  Al: { color: 0xcccccc, radius: 0.6, valence: 3 },
+  S: { color: 0xffee00, radius: 0.55, valence: 2 },
+  Cl: { color: 0x22c55e, radius: 0.55, valence: 1 },
+  K: { color: 0xff8800, radius: 0.65, valence: 1 },
+  Ca: { color: 0x9966ff, radius: 0.65, valence: 2 },
+  Fe: { color: 0xdd5500, radius: 0.6, valence: 3 },
+  Cu: { color: 0xdd8800, radius: 0.6, valence: 2 },
+  Zn: { color: 0x8899aa, radius: 0.6, valence: 2 },
+  Pb: { color: 0x666677, radius: 0.7, valence: 4 }
+};
+
+// ============================================
+// MOLÉCULES PRÉDÉFINIES
+// ============================================
+const molecules = {
+  h2o: { name: 'Agua', formula: 'H₂O', geometry: 'Coudée', angle: '104.5°', polarity: 'polar', polarityText: 'El oxígeno atrae los electrones.', explanation: 'El oxígeno tiene 2 pares de electrones no compartidos.', atoms: [{ element: 'O', pos: [0, 0, 0] }, { element: 'H', pos: [0.76, 0.59, 0] }, { element: 'H', pos: [-0.76, 0.59, 0] }], bonds: [[0, 1], [0, 2]] },
+  co2: { name: 'Dióxido de carbono', formula: 'CO₂', geometry: 'Lineal', angle: '180°', polarity: 'nonpolar', polarityText: 'Las polaridades se cancelan.', explanation: 'El carbono no tiene electrones no compartidos.', atoms: [{ element: 'C', pos: [0, 0, 0] }, { element: 'O', pos: [1.16, 0, 0] }, { element: 'O', pos: [-1.16, 0, 0] }], bonds: [[0, 1, 2], [0, 2, 2]] },
+  ch4: { name: 'Metano', formula: 'CH₄', geometry: 'Tetraédrica', angle: '109.5°', polarity: 'nonpolar', polarityText: 'Las polaridades se cancelan.', explanation: 'El carbono forma 4 enlaces.', atoms: [{ element: 'C', pos: [0, 0, 0] }, { element: 'H', pos: [0.63, 0.63, 0.63] }, { element: 'H', pos: [-0.63, -0.63, 0.63] }, { element: 'H', pos: [-0.63, 0.63, -0.63] }, { element: 'H', pos: [0.63, -0.63, -0.63] }], bonds: [[0, 1], [0, 2], [0, 3], [0, 4]] },
+  nh3: { name: 'Amoníaco', formula: 'NH₃', geometry: 'Piramidal', angle: '107°', polarity: 'polar', polarityText: 'El nitrógeno atrae los electrones.', explanation: 'El nitrógeno tiene 1 par de electrones no compartido.', atoms: [{ element: 'N', pos: [0, 0, 0] }, { element: 'H', pos: [0.94, -0.33, 0] }, { element: 'H', pos: [-0.47, -0.33, 0.81] }, { element: 'H', pos: [-0.47, -0.33, -0.81] }], bonds: [[0, 1], [0, 2], [0, 3]] },
+  hcl: { name: 'Ácido clorhídrico', formula: 'HCl', geometry: 'Lineal', angle: '180°', polarity: 'polar', polarityText: 'El cloro atrae el electrón del H.', explanation: 'Molécula diatómica polar.', atoms: [{ element: 'H', pos: [0, 0, 0] }, { element: 'Cl', pos: [1.27, 0, 0] }], bonds: [[0, 1]] },
+  nacl: { name: 'Sal de mesa', formula: 'NaCl', geometry: 'Iónica', angle: '—', polarity: 'polar', polarityText: 'Enlace iónico: Na⁺ y Cl⁻ se atraen.', explanation: 'El sodio dona 1 electrón al cloro.', atoms: [{ element: 'Na', pos: [0, 0, 0] }, { element: 'Cl', pos: [1.5, 0, 0] }], bonds: [[0, 1]] },
+  h2so4: { name: 'Ácido sulfúrico', formula: 'H₂SO₄', geometry: 'Tetraédrica', angle: '109°', polarity: 'polar', polarityText: 'Molécula muy polar. Es un ácido fuerte.', explanation: 'El azufre central está unido a 4 oxígenos.', atoms: [{ element: 'S', pos: [0, 0, 0] }, { element: 'O', pos: [1.2, 0.5, 0] }, { element: 'O', pos: [-1.2, 0.5, 0] }, { element: 'O', pos: [0, -1.2, 0.5] }, { element: 'O', pos: [0, 0.5, -1.2] }, { element: 'H', pos: [1.8, 0.8, 0] }, { element: 'H', pos: [-1.8, 0.8, 0] }], bonds: [[0, 1, 2], [0, 2, 2], [0, 3], [0, 4], [1, 5], [2, 6]] },
+  caco3: { name: 'Carbonato de calcio', formula: 'CaCO₃', geometry: 'Iónica', angle: '—', polarity: 'polar', polarityText: 'Enlace iónico entre Ca²⁺ y CO₃²⁻.', explanation: 'El calcio dona 2 electrones al carbonato.', atoms: [{ element: 'Ca', pos: [0, 0, 0] }, { element: 'C', pos: [1.8, 0, 0] }, { element: 'O', pos: [2.6, 0.7, 0] }, { element: 'O', pos: [2.6, -0.7, 0] }, { element: 'O', pos: [1.8, 0, 1] }], bonds: [[0, 1], [1, 2], [1, 3], [1, 4, 2]] },
+  benzene: { name: 'Benceno', formula: 'C₆H₆', geometry: 'Hexagonal', angle: '120°', polarity: 'nonpolar', polarityText: 'Distribución simétrica.', explanation: 'Anillo aromático.', atoms: [{ element: 'C', pos: [1.4, 0, 0] }, { element: 'C', pos: [0.7, 1.21, 0] }, { element: 'C', pos: [-0.7, 1.21, 0] }, { element: 'C', pos: [-1.4, 0, 0] }, { element: 'C', pos: [-0.7, -1.21, 0] }, { element: 'C', pos: [0.7, -1.21, 0] }, { element: 'H', pos: [2.48, 0, 0] }, { element: 'H', pos: [1.24, 2.14, 0] }, { element: 'H', pos: [-1.24, 2.14, 0] }, { element: 'H', pos: [-2.48, 0, 0] }, { element: 'H', pos: [-1.24, -2.14, 0] }, { element: 'H', pos: [1.24, -2.14, 0] }], bonds: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 6], [1, 7], [2, 8], [3, 9], [4, 10], [5, 11]] },
+  o2: { name: 'Oxígeno', formula: 'O₂', geometry: 'Lineal', angle: '180°', polarity: 'nonpolar', polarityText: 'Misma electronegatividad.', explanation: 'Doble enlace.', atoms: [{ element: 'O', pos: [0, 0, 0] }, { element: 'O', pos: [1.21, 0, 0] }], bonds: [[0, 1, 2]] },
+  n2: { name: 'Nitrógeno', formula: 'N₂', geometry: 'Lineal', angle: '180°', polarity: 'nonpolar', polarityText: 'Misma electronegatividad.', explanation: 'Triple enlace.', atoms: [{ element: 'N', pos: [0, 0, 0] }, { element: 'N', pos: [1.10, 0, 0] }], bonds: [[0, 1, 3]] }
+};
+
+// ============================================
+// SCÈNE
+// ============================================
+const container = document.getElementById('three-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+camera.position.set(0, 0, 6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
+keyLight.position.set(5, 5, 5);
+scene.add(keyLight);
+const purpleLight = new THREE.PointLight(0xa78bfa, 1.5, 15);
+purpleLight.position.set(-5, 3, 3);
+scene.add(purpleLight);
+const blueLight = new THREE.PointLight(0x38bdf8, 1, 15);
+blueLight.position.set(5, -3, -3);
+scene.add(blueLight);
+
+const moleculeGroup = new THREE.Group();
+scene.add(moleculeGroup);
+
+let currentMode = 'library';
+let currentMoleculeKey = 'h2o';
+let builderAtoms = [];
+let builderBonds = [];
+let selectedAtomType = 'H';
+let selectedBondOrder = 1;
+let lastSelectedAtom = null;
+let atomIdCounter = 0;
+let highlightMesh = null;
+
+// ============================================
+// RENDU
+// ============================================
+function clearScene() {
+  while(moleculeGroup.children.length > 0) {
+    moleculeGroup.remove(moleculeGroup.children[0]);
+  }
+  highlightMesh = null;
+}
+
+function renderMolecule(mol) {
+  clearScene();
+  mol.atoms.forEach(atom => {
+    const data = availableAtoms[atom.element];
+    const geo = new THREE.SphereGeometry(data.radius, 32, 32);
+    const mat = new THREE.MeshPhysicalMaterial({ color: data.color, roughness: 0.2, metalness: 0.1, clearcoat: 1.0 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(atom.pos[0], atom.pos[1], atom.pos[2]);
+    moleculeGroup.add(mesh);
+  });
+  mol.bonds.forEach(bond => {
+    const [i, j, order = 1] = bond;
+    drawBond(mol.atoms[i].pos, mol.atoms[j].pos, order);
+  });
+}
+
+function drawBond(posA, posB, order) {
+  const start = new THREE.Vector3(posA[0], posA[1], posA[2]);
+  const end = new THREE.Vector3(posB[0], posB[1], posB[2]);
+  const direction = new THREE.Vector3().subVectors(end, start);
+  const length = direction.length();
+  const midpoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+  const offsets = order === 1 ? [0] : order === 2 ? [-0.08, 0.08] : [-0.12, 0, 0.12];
+  offsets.forEach(offset => {
+    const geo = new THREE.CylinderGeometry(0.08, 0.08, length, 16);
+    const mat = new THREE.MeshPhysicalMaterial({ color: 0xdddddd, roughness: 0.4, metalness: 0.3 });
+    const bondMesh = new THREE.Mesh(geo, mat);
+    bondMesh.position.copy(midpoint);
+    bondMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+    if (offset !== 0) {
+      const perp = new THREE.Vector3(0, 1, 0).cross(direction).normalize();
+      bondMesh.position.add(perp.multiplyScalar(offset));
+    }
+    moleculeGroup.add(bondMesh);
+  });
+}
+
+function renderBuilder() {
+  clearScene();
+  builderAtoms.forEach((atom, idx) => {
+    const data = availableAtoms[atom.element];
+    const bondCount = builderBonds.filter(b => b.from === idx || b.to === idx).reduce((sum, b) => sum + b.order, 0);
+    const isInvalid = bondCount > data.valence;
+    const geo = new THREE.SphereGeometry(data.radius, 32, 32);
+    const mat = new THREE.MeshPhysicalMaterial({
+      color: isInvalid ? 0xff0000 : data.color,
+      roughness: 0.2, metalness: 0.1, clearcoat: 1.0,
+      emissive: isInvalid ? 0xff0000 : 0x000000,
+      emissiveIntensity: isInvalid ? 0.5 : 0
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(atom.pos[0], atom.pos[1], atom.pos[2]);
+    mesh.userData = { atomIndex: idx };
+    moleculeGroup.add(mesh);
+  });
+  builderBonds.forEach(bond => {
+    drawBond(builderAtoms[bond.from].pos, builderAtoms[bond.to].pos, bond.order);
+  });
+  if (lastSelectedAtom !== null && builderAtoms[lastSelectedAtom]) {
+    const atom = builderAtoms[lastSelectedAtom];
+    const haloGeo = new THREE.SphereGeometry(availableAtoms[atom.element].radius + 0.15, 32, 32);
+    const haloMat = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.4, side: THREE.BackSide });
+    highlightMesh = new THREE.Mesh(haloGeo, haloMat);
+    highlightMesh.position.set(atom.pos[0], atom.pos[1], atom.pos[2]);
+    moleculeGroup.add(highlightMesh);
+  }
+  document.getElementById('atom-counter').textContent = `${builderAtoms.length} átomo(s) · ${builderBonds.length} enlace(s)`;
+}
+
+// ============================================
+// PANNEAUX
+// ============================================
+function updateDetail(key) {
+  const mol = molecules[key];
+  document.getElementById('detail-title').textContent = '🔍 DETALLES DE LA MOLÉCULA';
+  document.getElementById('molecule-detail').innerHTML = `
+    <div class="molecule-header">
+      <div class="formula-big">${mol.formula}</div>
+      <div class="name-big">${mol.name}</div>
+    </div>
+    <div class="info-row"><span class="label">Geometría</span><span class="value">${mol.geometry}</span></div>
+    <div class="info-row"><span class="label">Ángulo</span><span class="value">${mol.angle}</span></div>
+    <div class="info-row"><span class="label">Átomos</span><span class="value">${mol.atoms.length}</span></div>
+    <div class="info-row"><span class="label">Liaisons</span><span class="value">${mol.bonds.length}</span></div>
+    <div class="polarity-box ${mol.polarity}">
+      <b>${mol.polarity === 'polar' ? '⚡ Molécula POLAR' : '⚖️ Molécula NO POLAR'}</b><br>${mol.polarityText}
+    </div>
+    <div class="explanation-box"><b>¿Por qué tiene esta forma?</b><br>${mol.explanation}</div>
+  `;
+}
+
+function updateBuilderDetail() {
+  document.getElementById('detail-title').textContent = '🔨 TU CONSTRUCCIÓN';
+  const detail = document.getElementById('molecule-detail');
+  if (builderAtoms.length === 0) {
+    detail.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px 0;font-size:13px;">Añade átomos y enlaces para construir tu molécula.</p>`;
+    return;
+  }
+  const atomCounts = {};
+  builderAtoms.forEach(a => { atomCounts[a.element] = (atomCounts[a.element] || 0) + 1; });
+  const formulaParts = Object.entries(atomCounts).map(([el, count]) => el + (count > 1 ? count : ''));
+  detail.innerHTML = `
+    <div class="molecule-header" style="border-color: var(--accent-blue);">
+      <div class="formula-big" style="color: var(--accent-blue);">${formulaParts.join('') || '?'}</div>
+      <div class="name-big">Tu construcción</div>
+    </div>
+    <div class="info-row"><span class="label">Total átomos</span><span class="value">${builderAtoms.length}</span></div>
+    <div class="info-row"><span class="label">Total enlaces</span><span class="value">${builderBonds.length}</span></div>
+    <div class="explanation-box">
+      <b>Valencias:</b> H=1 · C=4 · N=3 · O=2 · Na=1 · Mg=2 · Al=3 · S=2 · Cl=1 · K=1 · Ca=2 · Fe=3 · Cu=2 · Zn=2 · Pb=4
+    </div>
+  `;
+}
+
+// ============================================
+// CONSTRUCTEUR
+// ============================================
+function addAtom(element) {
+  const angle = (builderAtoms.length * 1.2) % (Math.PI * 2);
+  const distance = 1.5;
+  const pos = [Math.cos(angle) * distance, Math.sin(angle) * distance * 0.5, Math.sin(angle) * distance * 0.5];
+  builderAtoms.push({ element, pos, id: atomIdCounter++ });
+  renderBuilder();
+  updateBuilderDetail();
+}
+
+function clearAll() {
+  builderAtoms = []; builderBonds = []; lastSelectedAtom = null;
+  renderBuilder(); updateBuilderDetail();
+  document.getElementById('construction-feedback').className = 'construction-feedback';
+}
+
+function deleteLast() {
+  if (builderBonds.length > 0) builderBonds.pop();
+  else if (builderAtoms.length > 0) builderAtoms.pop();
+  lastSelectedAtom = null;
+  renderBuilder(); updateBuilderDetail();
+}
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+renderer.domElement.addEventListener('click', (event) => {
+  if (currentMode !== 'build') return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const atomMeshes = moleculeGroup.children.filter(c => c.userData.atomIndex !== undefined);
+  const intersects = raycaster.intersectObjects(atomMeshes);
+  if (intersects.length > 0) {
+    const clickedIdx = intersects[0].object.userData.atomIndex;
+    if (lastSelectedAtom === null) {
+      lastSelectedAtom = clickedIdx; renderBuilder();
+      showFeedback(`Átomo ${builderAtoms[clickedIdx].element} seleccionado. Haz clic en otro átomo para unirlos.`, 'info');
+    } else if (lastSelectedAtom === clickedIdx) {
+      lastSelectedAtom = null; renderBuilder();
+      showFeedback('Selección cancelada.', 'info');
+    } else {
+      builderBonds.push({ from: lastSelectedAtom, to: clickedIdx, order: selectedBondOrder });
+      lastSelectedAtom = null; renderBuilder(); updateBuilderDetail();
+      showFeedback('¡Enlace creado!', 'success');
+    }
+  }
+});
+
+function showFeedback(text, type) {
+  const fb = document.getElementById('construction-feedback');
+  fb.className = `construction-feedback ${type}`;
+  fb.textContent = text;
+  setTimeout(() => { fb.className = 'construction-feedback'; }, 3000);
+}
+
+window.selectAtom = function(el) {
+  selectedAtomType = el;
+  document.querySelectorAll('.atom-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-atom="${el}"]`).classList.add('active');
+  addAtom(el);
+};
+
+window.selectBond = function(order) {
+  selectedBondOrder = order;
+  document.querySelectorAll('.bond-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-bond="${order}"]`).classList.add('active');
+};
+
+window.checkMolecule = function() {
+  const errors = [];
+  builderAtoms.forEach((atom, idx) => {
+    const bondCount = builderBonds.filter(b => b.from === idx || b.to === idx).reduce((s, b) => s + b.order, 0);
+    const valence = availableAtoms[atom.element].valence;
+    if (bondCount > valence) errors.push(`El ${atom.element} tiene ${bondCount} enlaces pero solo puede tener ${valence}.`);
+  });
+  if (errors.length > 0) { showFeedback(`❌ Errores de valencia: ${errors.join(' ')}`, 'error'); return; }
+  const atomCounts = {};
+  builderAtoms.forEach(a => { atomCounts[a.element] = (atomCounts[a.element] || 0) + 1; });
+  const knownMolecules = {
+    'H2O': '💧 ¡Es AGUA!', 'CO2': '💨 ¡Es CO₂!', 'CH4': '🔥 ¡Es METANO!',
+    'NH3': '🧪 ¡Es AMONÍACO!', 'HCl': '🧪 ¡Es ÁCIDO CLORHÍDRICO!',
+    'O2': '💨 ¡Es OXÍGENO!', 'N2': '💨 ¡Es NITRÓGENO!',
+    'NaCl': '🧂 ¡Es SAL DE MESA!', 'H2SO4': '🧪 ¡Es ÁCIDO SULFÚRICO!',
+    'CaCO3': '🪨 ¡Es CARBONATO DE CALCIO!', 'KOH': '🧪 ¡Es HIDRÓXIDO DE POTASIO!',
+    'Fe2O3': '🔴 ¡Es ÓXIDO DE HIERRO (rouille)!', 'CuSO4': '🔵 ¡Es SULFATO DE COBRE!'
+  };
+  const formula = Object.entries(atomCounts).sort((a, b) => a[0].localeCompare(b[0])).map(([el, count]) => el + (count > 1 ? count : '')).join('');
+  if (knownMolecules[formula]) showFeedback(`🎉 ${knownMolecules[formula]}`, 'success');
+  else showFeedback(`✅ ¡Molécula válida! Fórmula: ${formula}`, 'success');
+};
+
+window.setTab = function(tab) {
+  currentMode = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'library') {
+    document.getElementById('library-controls').style.display = 'block';
+    document.getElementById('build-controls').style.display = 'none';
+    renderMolecule(molecules[currentMoleculeKey]);
+    updateDetail(currentMoleculeKey);
+    clearAll();
+  } else {
+    document.getElementById('library-controls').style.display = 'none';
+    document.getElementById('build-controls').style.display = 'block';
+    clearAll(); updateBuilderDetail();
+  }
+};
+
+function buildMoleculeButtons() {
+  const grid = document.getElementById('molecule-grid');
+  grid.innerHTML = '';
+  Object.keys(molecules).forEach(key => {
+    const mol = molecules[key];
+    const btn = document.createElement('button');
+    btn.className = 'molecule-btn' + (key === currentMoleculeKey ? ' active' : '');
+    btn.innerHTML = `<span class="formula">${mol.formula}</span><span class="name">${mol.name}</span>`;
+    btn.onclick = () => {
+      currentMoleculeKey = key;
+      document.querySelectorAll('.molecule-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMolecule(mol);
+      updateDetail(key);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function buildAtomSelector() {
+  const container = document.getElementById('atom-selector');
+  container.innerHTML = '';
+  Object.keys(availableAtoms).forEach(el => {
+    const btn = document.createElement('button');
+    btn.className = 'atom-btn' + (el === 'H' ? ' active' : '');
+    btn.dataset.atom = el;
+    btn.innerHTML = `${el}<span class="valence">val ${availableAtoms[el].valence}</span>`;
+    btn.onclick = () => window.selectAtom(el);
+    container.appendChild(btn);
+  });
+}
+
+function animate() {
+  moleculeGroup.rotation.y += 0.003;
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+buildMoleculeButtons();
+buildAtomSelector();
+renderMolecule(molecules['h2o']);
+updateDetail('h2o');
+animate();
+
+window.addEventListener('resize', () => {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+</script>
+</body>
+</html>

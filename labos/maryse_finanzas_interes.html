@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Interés Simple y Compuesto</title>
+<style>
+  :root { --bg-primary: #0a0e27; --bg-card: rgba(255,255,255,0.04); --border-card: rgba(255,255,255,0.1); --text-primary: #ffffff; --text-secondary: #94a3b8; --text-muted: #64748b; --accent-pink: #f472b6; --accent-blue: #38bdf8; --accent-green: #22c55e; --accent-orange: #f59e0b; --accent-purple: #a78bfa; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; background: linear-gradient(90deg, var(--accent-green), var(--accent-blue)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 10px; }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+  .controls { display: flex; flex-direction: column; gap: 10px; }
+  .control-group { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 12px; }
+  .control-group label { font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .control-group label span { color: var(--accent-green); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-green); }
+  .right-col { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; height: fit-content; }
+  .right-col h3 { font-size: 14px; color: var(--accent-orange); letter-spacing: 1.5px; margin-bottom: 16px; }
+  .calc-step { padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 13px; line-height: 1.6; }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title { font-size: 11px; font-weight: 700; color: var(--accent-purple); letter-spacing: 1px; margin-bottom: 4px; }
+  .calc-step .formula { font-family: "Courier New", monospace; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; margin-top: 6px; color: var(--accent-green); font-size: 12px; }
+  .result-big { font-size: 18px; font-weight: 800; color: var(--accent-blue); display: inline-block; margin-top: 4px; }
+  .result-simple { color: #f59e0b; }
+  .result-compuesto { color: #22c55e; }
+  .bottom-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight { background: rgba(34,197,94,0.1); border-left: 3px solid var(--accent-green); padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-top: 8px; }
+  .btn-back { display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-card); color: var(--text-primary); border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💰 Laboratorio: Interés Simple y Compuesto</h1>
+  <div class="subtitle">Compara cómo crece tu dinero con cada tipo de interés.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container"><canvas id="canvas" width="500" height="350"></canvas></div>
+      <div class="controls">
+        <div class="control-group"><label>Inversión inicial <b>$</b> <span id="val-p">1000</span></label><input type="range" id="range-p" min="100" max="10000" step="100" value="1000"></div>
+        <div class="control-group"><label>Tasa de interés anual <b>%</b> <span id="val-r">5</span></label><input type="range" id="range-r" min="1" max="20" step="0.5" value="5"></div>
+        <div class="control-group"><label>Años <b>t</b> <span id="val-t">10</span></label><input type="range" id="range-t" min="1" max="40" step="1" value="10"></div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Interés SIMPLE (I = P × r × t)</div>
+        <div class="formula" id="step-simple-formula">—</div>
+        <span class="result-big result-simple" id="step-simple">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Monto final SIMPLE (M = P + I)</div>
+        <div class="formula" id="step-simple-monto-formula">—</div>
+        <span class="result-big result-simple" id="step-simple-monto">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Interés COMPUESTO (M = P × (1 + r)ᵗ)</div>
+        <div class="formula" id="step-compuesto-formula">—</div>
+        <span class="result-big result-compuesto" id="step-compuesto">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Diferencia (compuesto - simple)</div>
+        <span class="result-big" id="step-diferencia">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>💰 INTERÉS SIMPLE vs COMPUESTO</h3>
+      <p><b>Interés Simple:</b> Se calcula siempre sobre el capital inicial. Es lineal.</p>
+      <p><b>Interés Compuesto:</b> Se calcula sobre el capital inicial <b>más</b> los intereses acumulados. Es exponencial.</p>
+      <p>Por eso el compuesto crece mucho más rápido con el tiempo.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>El interés compuesto es la base del ahorro y la inversión. Albert Einstein lo llamó "la octava maravilla del mundo".</p>
+      <div class="highlight">
+        <b>Ejemplo:</b> $1000 al 5% durante 10 años:<br>
+        Simple → $1500 (ganas $500)<br>
+        Compuesto → $1628.89 (ganas $628.89)<br><br>
+        Durante 40 años, la diferencia es enorme.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let P = 1000, r = 0.05, t = 10;
+
+['p', 'r', 't'].forEach(id => {
+  document.getElementById('range-' + id).addEventListener('input', (e) => {
+    if (id === 'p') { P = parseInt(e.target.value); document.getElementById('val-p').textContent = P; }
+    if (id === 'r') { r = parseFloat(e.target.value) / 100; document.getElementById('val-r').textContent = (r * 100).toFixed(1); }
+    if (id === 't') { t = parseInt(e.target.value); document.getElementById('val-t').textContent = t; }
+    update();
+  });
+});
+
+function drawChart() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const pad = 50;
+  const chartW = W - pad * 2;
+  const chartH = H - pad * 2;
+
+  let maxVal = 0;
+  const simplePoints = [];
+  const compuestoPoints = [];
+  for (let i = 0; i <= t; i++) {
+    const simple = P + P * r * i;
+    const compuesto = P * Math.pow(1 + r, i);
+    maxVal = Math.max(maxVal, simple, compuesto);
+    simplePoints.push({ year: i, val: simple });
+    compuestoPoints.push({ year: i, val: compuesto });
+  }
+  maxVal *= 1.1;
+
+  // Grille
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = pad + (chartH / 5) * i;
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pad, pad); ctx.lineTo(pad, H - pad);
+  ctx.moveTo(pad, H - pad); ctx.lineTo(W - pad, H - pad);
+  ctx.stroke();
+
+  // Courbe simple (orange)
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  simplePoints.forEach((p, i) => {
+    const x = pad + (p.year / t) * chartW;
+    const y = H - pad - (p.val / maxVal) * chartH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Courbe composée (verte)
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  compuestoPoints.forEach((p, i) => {
+    const x = pad + (p.year / t) * chartW;
+    const y = H - pad - (p.val / maxVal) * chartH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Simple', pad + 5, pad + 15);
+  ctx.fillStyle = '#22c55e';
+  ctx.fillText('Compuesto', pad + 5, pad + 32);
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Crecimiento en ${t} años`, W / 2, 20);
+}
+
+function update() {
+  const I_simple = P * r * t;
+  const M_simple = P + I_simple;
+  const M_compuesto = P * Math.pow(1 + r, t);
+  const diferencia = M_compuesto - M_simple;
+
+  document.getElementById('step-simple-formula').textContent = 
+    `I = ${P} × ${r.toFixed(2)} × ${t}`;
+  document.getElementById('step-simple').textContent = 
+    `$${I_simple.toFixed(2)}`;
+
+  document.getElementById('step-simple-monto-formula').textContent = 
+    `M = ${P} + ${I_simple.toFixed(2)}`;
+  document.getElementById('step-simple-monto').textContent = 
+    `$${M_simple.toFixed(2)}`;
+
+  document.getElementById('step-compuesto-formula').textContent = 
+    `M = ${P} × (1 + ${r.toFixed(2)})^${t}`;
+  document.getElementById('step-compuesto').textContent = 
+    `$${M_compuesto.toFixed(2)}`;
+
+  document.getElementById('step-diferencia').textContent = 
+    `+$${diferencia.toFixed(2)} a favor del compuesto`;
+
+  drawChart();
+}
+
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Presupuesto Familiar</title>
+<style>
+  :root { --bg-primary: #0a0e27; --bg-card: rgba(255,255,255,0.04); --border-card: rgba(255,255,255,0.1); --text-primary: #ffffff; --text-secondary: #94a3b8; --text-muted: #64748b; --accent-pink: #f472b6; --accent-blue: #38bdf8; --accent-green: #22c55e; --accent-orange: #f59e0b; --accent-purple: #a78bfa; --accent-red: #ef4444; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .controls { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; }
+  .controls h3 { font-size: 14px; color: var(--accent-pink); margin-bottom: 16px; letter-spacing: 1px; }
+  .income-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .income-row label { font-size: 13px; color: var(--text-secondary); flex: 0 0 150px; }
+  .income-row input[type="number"] { flex: 1; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-card); border-radius: 8px; color: var(--text-primary); font-size: 14px; }
+  .income-row span { color: var(--accent-green); font-weight: 700; }
+  
+  .expense-item { margin-bottom: 14px; }
+  .expense-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .expense-header .label { color: var(--text-secondary); }
+  .expense-header .value { color: var(--accent-pink); font-weight: 700; }
+  .expense-item input[type="range"] { width: 100%; accent-color: var(--accent-pink); }
+  .expense-item .range-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  
+  .right-col { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; height: fit-content; }
+  .right-col h3 { font-size: 14px; color: var(--accent-orange); letter-spacing: 1.5px; margin-bottom: 16px; }
+  .calc-step { padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 13px; line-height: 1.6; }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title { font-size: 11px; font-weight: 700; color: var(--accent-purple); letter-spacing: 1px; margin-bottom: 4px; }
+  .calc-step .formula { font-family: "Courier New", monospace; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; margin-top: 6px; color: var(--accent-green); font-size: 12px; }
+  .result-big { font-size: 22px; font-weight: 800; color: var(--accent-blue); display: inline-block; margin-top: 4px; }
+  .result-ok { color: var(--accent-green); }
+  .result-danger { color: var(--accent-red); }
+  .result-warning { color: var(--accent-orange); }
+
+  .budget-bar { display: flex; height: 24px; border-radius: 6px; overflow: hidden; margin: 10px 0; background: rgba(255,255,255,0.05); }
+  .budget-bar .segment { height: 100%; transition: width 0.3s; }
+  
+  .bottom-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 20px; }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight { background: rgba(34,197,94,0.1); border-left: 3px solid var(--accent-green); padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-top: 8px; }
+  .btn-back { display: inline-block; margin-top: 20px; padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-card); color: var(--text-primary); border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💼 Laboratorio: Presupuesto Familiar</h1>
+  <div class="subtitle">Ajusta tus ingresos y gastos para equilibrar el presupuesto. ¡La regla 50/30/20 te guiará!</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="controls">
+        <h3>💵 INGRESOS</h3>
+        <div class="income-row">
+          <label>Ingreso mensual total</label>
+          <input type="number" id="income-input" value="2000" min="0" step="100">
+          <span>$</span>
+        </div>
+
+        <h3 style="margin-top: 20px;">💸 GASTOS</h3>
+        <div class="expense-item">
+          <div class="expense-header"><span class="label">🏠 Vivienda (renta, servicios)</span><span class="value" id="housing-value">$600</span></div>
+          <input type="range" id="housing-slider" min="0" max="100" step="1" value="30">
+          <div class="range-labels"><span>0%</span><span>100% del ingreso</span></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-header"><span class="label">🍽️ Alimentación</span><span class="value" id="food-value">$400</span></div>
+          <input type="range" id="food-slider" min="0" max="100" step="1" value="20">
+          <div class="range-labels"><span>0%</span><span>100% del ingreso</span></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-header"><span class="label">🚌 Transporte</span><span class="value" id="transport-value">$200</span></div>
+          <input type="range" id="transport-slider" min="0" max="100" step="1" value="10">
+          <div class="range-labels"><span>0%</span><span>100% del ingreso</span></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-header"><span class="label">🎮 Ocio y gustos</span><span class="value" id="leisure-value">$200</span></div>
+          <input type="range" id="leisure-slider" min="0" max="100" step="1" value="10">
+          <div class="range-labels"><span>0%</span><span>100% del ingreso</span></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-header"><span class="label">💎 Ahorro</span><span class="value" id="savings-value">$200</span></div>
+          <input type="range" id="savings-slider" min="0" max="100" step="1" value="10">
+          <div class="range-labels"><span>0%</span><span>100% del ingreso</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Gastos totales</div>
+        <div class="formula" id="step-total-gastos">—</div>
+        <span class="result-big" id="step-gastos-result">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Balance (Ingresos - Gastos)</div>
+        <div class="formula" id="step-balance-formula">—</div>
+        <span class="result-big" id="step-balance-result">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Distribución del presupuesto</div>
+        <div class="budget-bar" id="budget-bar"></div>
+        <div id="step-distribucion" style="font-size:12px;color:var(--text-secondary);margin-top:8px;">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Diagnóstico</div>
+        <div id="step-diagnostico" style="font-size:13px;font-weight:700;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>💡 LA REGLA 50/30/20</h3>
+      <p>Una regla sencilla para un presupuesto saludable:</p>
+      <p><b>50%</b> para necesidades (vivienda, comida, transporte).</p>
+      <p><b>30%</b> para gustos (ocio, ropa, salidas).</p>
+      <p><b>20%</b> para ahorro e inversión.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>Un presupuesto te da control sobre tu dinero. Sin él, es fácil gastar de más y terminar endeudado.</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> Si tus gastos superan tus ingresos, estás en <b style="color:#ef4444;">déficit</b>. Debes recortar gastos o aumentar ingresos. Si te sobra dinero, estás en <b style="color:#22c55e;">superávit</b> y puedes ahorrar más.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+let income = 2000;
+const expenses = {
+  housing: { percent: 30, color: '#38bdf8', label: 'Vivienda' },
+  food: { percent: 20, color: '#22c55e', label: 'Alimentación' },
+  transport: { percent: 10, color: '#f59e0b', label: 'Transporte' },
+  leisure: { percent: 10, color: '#f472b6', label: 'Ocio' },
+  savings: { percent: 10, color: '#a78bfa', label: 'Ahorro' }
+};
+
+document.getElementById('income-input').addEventListener('input', (e) => {
+  income = parseInt(e.target.value) || 0;
+  update();
+});
+
+Object.keys(expenses).forEach(key => {
+  document.getElementById(key + '-slider').addEventListener('input', (e) => {
+    expenses[key].percent = parseInt(e.target.value);
+    update();
+  });
+});
+
+function update() {
+  // Calcul des montants
+  let totalPercent = 0;
+  Object.keys(expenses).forEach(key => {
+    const amount = (income * expenses[key].percent) / 100;
+    expenses[key].amount = amount;
+    totalPercent += expenses[key].percent;
+    document.getElementById(key + '-value').textContent = `$${amount.toFixed(0)}`;
+  });
+
+  const totalExpenses = Object.values(expenses).reduce((sum, e) => sum + e.amount, 0);
+  const balance = income - totalExpenses;
+
+  // Mise à jour du carnet
+  document.getElementById('step-total-gastos').textContent = 
+    `${Object.keys(expenses).map(k => `$${expenses[k].amount.toFixed(0)}`).join(' + ')}`;
+  document.getElementById('step-gastos-result').textContent = `$${totalExpenses.toFixed(0)}`;
+
+  document.getElementById('step-balance-formula').textContent = 
+    `$${income} - $${totalExpenses.toFixed(0)} = $${balance.toFixed(0)}`;
+
+  const balanceEl = document.getElementById('step-balance-result');
+  if (balance > 0) {
+    balanceEl.textContent = `+$${balance.toFixed(0)} (superávit)`;
+    balanceEl.className = 'result-big result-ok';
+  } else if (balance < 0) {
+    balanceEl.textContent = `-$${Math.abs(balance).toFixed(0)} (déficit)`;
+    balanceEl.className = 'result-big result-danger';
+  } else {
+    balanceEl.textContent = `$${balance.toFixed(0)} (equilibrio)`;
+    balanceEl.className = 'result-big result-warning';
+  }
+
+  // Barre de distribution
+  const budgetBar = document.getElementById('budget-bar');
+  budgetBar.innerHTML = '';
+  Object.keys(expenses).forEach(key => {
+    const seg = document.createElement('div');
+    seg.className = 'segment';
+    seg.style.width = expenses[key].percent + '%';
+    seg.style.background = expenses[key].color;
+    seg.title = `${expenses[key].label}: ${expenses[key].percent}%`;
+    budgetBar.appendChild(seg);
+  });
+  if (totalPercent < 100) {
+    const seg = document.createElement('div');
+    seg.className = 'segment';
+    seg.style.width = (100 - totalPercent) + '%';
+    seg.style.background = 'rgba(255,255,255,0.1)';
+    budgetBar.appendChild(seg);
+  }
+
+  document.getElementById('step-distribucion').innerHTML = 
+    Object.keys(expenses).map(k => 
+      `<span style="color:${expenses[k].color};">■ ${expenses[k].label}: ${expenses[k].percent}%</span>`
+    ).join(' · ');
+
+  // Diagnostic
+  const diag = document.getElementById('step-diagnostico');
+  if (balance < 0) {
+    diag.innerHTML = '<span style="color:#ef4444;">❌ Estás en déficit. Debes recortar gastos o aumentar ingresos.</span>';
+  } else if (expenses.savings.percent < 20) {
+    diag.innerHTML = '<span style="color:#f59e0b;">⚠️ Ahorras menos del 20%. Intenta llegar a la regla 50/30/20.</span>';
+  } else if (expenses.leisure.percent > 30) {
+    diag.innerHTML = '<span style="color:#f59e0b;">⚠️ Gastas demasiado en ocio (más del 30%).</span>';
+  } else {
+    diag.innerHTML = '<span style="color:#22c55e;">✅ Tu presupuesto está equilibrado y sigues la regla 50/30/20.</span>';
+  }
+}
+
+update();
+</script>
+</body>
+</html>

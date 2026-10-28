@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Genética</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    font-size: 12px; color: var(--text-secondary);
+    display: flex; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-green); font-weight: 700; }
+  select {
+    width: 100%; padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-card);
+    border-radius: 8px; color: var(--text-primary);
+    font-size: 13px;
+  }
+  select:focus { outline: none; border-color: var(--accent-green); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 16px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+  .punnett-square {
+    display: grid;
+    grid-template-columns: 30px 1fr 1fr;
+    grid-template-rows: 30px 1fr 1fr;
+    gap: 2px;
+    margin-top: 8px;
+  }
+  .punnett-cell {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-card);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    min-height: 40px;
+  }
+  .punnett-header {
+    background: rgba(56,189,248,0.15);
+    border: 1px solid rgba(56,189,248,0.3);
+    color: var(--accent-blue);
+  }
+  .punnett-result {
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--accent-green);
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🧬 Laboratorio: Genética</h1>
+  <div class="subtitle">Descubre cómo se heredan los rasgos de padres a hijos usando el Cuadrado de Punnett.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Genotipo del <b>Padre</b></label>
+          <select id="padre-select">
+            <option value="AA">AA (Homocigoto dominante - Ojos marrones)</option>
+            <option value="Aa" selected>Aa (Heterocigoto - Ojos marrones)</option>
+            <option value="aa">aa (Homocigoto recesivo - Ojos azules)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Genotipo de la <b>Madre</b></label>
+          <select id="madre-select">
+            <option value="AA">AA (Homocigoto dominante - Ojos marrones)</option>
+            <option value="Aa" selected>Aa (Heterocigoto - Ojos marrones)</option>
+            <option value="aa">aa (Homocigoto recesivo - Ojos azules)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Cuadrado de Punnett</div>
+        <div class="punnett-square" id="punnett">
+          <!-- Généré par JS -->
+        </div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Proporciones genotípicas</div>
+        <div id="step-genotipos" style="font-size:13px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Proporciones fenotípicas</div>
+        <div id="step-fenotipos" style="font-size:13px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Probabilidad de cada rasgo</div>
+        <div id="step-probabilidad" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🧬 CONCEPTOS CLAVE</h3>
+      <p><b>Gen:</b> Unidad de herencia que determina un rasgo.</p>
+      <p><b>Alelo:</b> Cada una de las variantes de un gen (A o a).</p>
+      <p><b>Genotipo:</b> La combinación de alelos (AA, Aa, aa).</p>
+      <p><b>Fenotipo:</b> El rasgo observable (ojos marrones u ojos azules).</p>
+      <p><b>Dominante (A):</b> Se expresa aunque haya un solo alelo.</p>
+      <p><b>Recesivo (a):</b> Solo se expresa si hay dos alelos iguales.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 EL CUADRADO DE PUNNETT</h3>
+      <p>Es una herramienta que permite predecir las combinaciones genéticas de la descendencia.</p>
+      <div class="highlight">
+        <b>Ejemplo:</b> Si el padre es Aa (heterocigoto) y la madre es Aa, hay 4 combinaciones posibles:<br>
+        AA (25%) · Aa (50%) · aa (25%)<br><br>
+        Como A (ojos marrones) domina sobre a (ojos azules):<br>
+        <b>75% de probabilidad de ojos marrones</b><br>
+        <b>25% de probabilidad de ojos azules</b>
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let padre = 'Aa';
+let madre = 'Aa';
+
+document.getElementById('padre-select').addEventListener('change', (e) => {
+  padre = e.target.value;
+  update();
+});
+
+document.getElementById('madre-select').addEventListener('change', (e) => {
+  madre = e.target.value;
+  update();
+});
+
+function calcularPunnett(p, m) {
+  const alelosP = p.split('');
+  const alelosM = m.split('');
+  const result = [];
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+      // Ordre conventionnel : Dominant d'abord
+      let combo = [alelosP[i], alelosM[j]].sort();
+      result.push(combo.join(''));
+    }
+  }
+  return result;
+}
+
+function drawEyes(genotipos) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // Titre
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Posibles hijos', cx, 40);
+
+  // Dessiner 4 yeux
+  const positions = [
+    { x: cx - 100, y: cy - 40 },
+    { x: cx + 100, y: cy - 40 },
+    { x: cx - 100, y: cy + 80 },
+    { x: cx + 100, y: cy + 80 }
+  ];
+
+  genotipos.forEach((g, i) => {
+    const pos = positions[i];
+    const tieneOjosMarrones = g.includes('A');
+    
+    // Œil
+    ctx.fillStyle = tieneOjosMarrones ? '#8B4513' : '#38bdf8';
+    ctx.beginPath();
+    ctx.ellipse(pos.x, pos.y, 40, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Pupille
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Reflet
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.arc(pos.x - 5, pos.y - 5, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Génotype
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(g, pos.x, pos.y + 45);
+  });
+}
+
+function update() {
+  const genotipos = calcularPunnett(padre, madre);
+  
+  // Remplir le tableau de Punnett
+  const punnettDiv = document.getElementById('punnett');
+  const alelosP = padre.split('');
+  const alelosM = madre.split('');
+  
+  let html = `<div class="punnett-cell punnett-header"></div>`;
+  html += `<div class="punnett-cell punnett-header">${alelosM[0]}</div>`;
+  html += `<div class="punnett-cell punnett-header">${alelosM[1]}</div>`;
+  
+  for (let i = 0; i < 2; i++) {
+    html += `<div class="punnett-cell punnett-header">${alelosP[i]}</div>`;
+    for (let j = 0; j < 2; j++) {
+      const g = [alelosP[i], alelosM[j]].sort().join('');
+      html += `<div class="punnett-cell punnett-result">${g}</div>`;
+    }
+  }
+  punnettDiv.innerHTML = html;
+
+  // Compter les génotypes
+  const counts = { AA: 0, Aa: 0, aa: 0 };
+  genotipos.forEach(g => counts[g]++);
+  
+  document.getElementById('step-genotipos').innerHTML = 
+    `AA: ${counts.AA}/4 (${counts.AA*25}%)<br>` +
+    `Aa: ${counts.Aa}/4 (${counts.Aa*25}%)<br>` +
+    `aa: ${counts.aa}/4 (${counts.aa*25}%)`;
+  
+  // Compter les phénotypes
+  const marrones = counts.AA + counts.Aa;
+  const azules = counts.aa;
+  const total = 4;
+  
+  document.getElementById('step-fenotipos').innerHTML = 
+    `🟤 Ojos marrones (A_): ${marrones}/4 = <b>${(marrones/total*100).toFixed(0)}%</b><br>` +
+    `🔵 Ojos azules (aa): ${azules}/4 = <b>${(azules/total*100).toFixed(0)}%</b>`;
+  
+  // Probabilité
+  document.getElementById('step-probabilidad').innerHTML = 
+    `Probabilidad de ojos marrones: <b style="color:#8B4513;">${(marrones/total*100).toFixed(0)}%</b><br>` +
+    `Probabilidad de ojos azules: <b style="color:#38bdf8;">${(azules/total*100).toFixed(0)}%</b>`;
+
+  drawEyes(genotipos);
+}
+
+update();
+</script>
+</body>
+</html>

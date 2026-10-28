@@ -1,0 +1,19 @@
+# Déploiement Render — FUTURA
+# Plan gratuit : le service s'endort après 15 min d'inactivité et le disque
+# est éphémère. La base SQLite est donc recréée à chaque réveil (progression
+# perdue). Pour conserver les données, ajouter une base Postgres Render et
+# définir DATABASE_URL (voir PASSATION.md §9).
+
+services:
+  - type: web
+    name: futura
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: PYTHONUNBUFFERED
+        value: "1"

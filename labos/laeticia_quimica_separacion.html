@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeparaciónAR — Laboratorio</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #050810;
+    color: #fff;
+    overflow: hidden;
+  }
+  #canvas-container { position: fixed; inset: 0; z-index: 1; }
+  
+  .ui-panel {
+    position: fixed; z-index: 10;
+    background: rgba(10, 15, 30, 0.88);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  #home-screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px;
+    background: radial-gradient(ellipse at center, #0a1528 0%, #050810 100%);
+    overflow-y: auto;
+  }
+  #home-screen.hidden { display: none; }
+  #home-screen h1 {
+    font-size: 48px; font-weight: 800;
+    background: linear-gradient(90deg, #00d2ff, #ff006e, #ffbe0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px; text-align: center;
+  }
+  #home-screen .subtitle { font-size: 15px; color: #8899aa; margin-bottom: 30px; text-align: center; }
+  .mode-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; max-width: 720px; width: 100%;
+  }
+  .mode-card {
+    padding: 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; transition: all 0.3s ease; text-align: left;
+  }
+  .mode-card:hover {
+    background: rgba(0, 210, 255, 0.08);
+    transform: translateY(-5px);
+    border-color: #00d2ff;
+    box-shadow: 0 15px 40px rgba(0, 210, 255, 0.2);
+  }
+  .mode-card .emoji { font-size: 40px; margin-bottom: 10px; display: block; }
+  .mode-card .title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .mode-card .desc { font-size: 11px; color: #8899aa; line-height: 1.4; }
+  .mode-card.pisa { border-color: rgba(255, 190, 11, 0.3); }
+  .mode-card.pisa:hover { border-color: #ffbe0b; box-shadow: 0 15px 40px rgba(255, 190, 11, 0.2); }
+
+  #lab-ui { display: none; }
+  #lab-ui.active { display: block; }
+
+  #controls {
+    top: 20px; left: 20px;
+    width: 360px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+  #controls h2 {
+    font-size: 18px; font-weight: 700;
+    background: linear-gradient(90deg, #00d2ff, #ff006e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+  }
+  
+  .step-btn {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    color: #a0aab5;
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .step-btn:hover:not(:disabled) {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: #00d2ff;
+    color: #fff;
+  }
+  .step-btn.active {
+    background: rgba(0, 210, 255, 0.15);
+    border-color: #00d2ff;
+    color: #fff;
+  }
+  .step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .step-btn .num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-btn.active .num { background: #00d2ff; color: #000; }
+  .step-btn.done .num { background: #00cc66; color: #fff; }
+
+  #info-panel {
+    bottom: 20px; left: 20px; right: 20px;
+    max-width: 700px; margin: 0 auto;
+    text-align: center;
+  }
+  #info-text {
+    font-size: 14px; line-height: 1.7;
+    color: #d0d8e8;
+  }
+  #info-text b { color: #00d2ff; }
+  #info-text .highlight { 
+    color: #ffbe0b; 
+    font-weight: 600;
+    background: rgba(255, 190, 11, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  #back-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 20;
+    padding: 10px 20px; border-radius: 30px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white; font-weight: 600; cursor: pointer;
+  }
+
+  .feedback {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px 28px; border-radius: 14px;
+    font-size: 15px; font-weight: 600;
+    z-index: 30; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feedback.show { opacity: 1; }
+  .feedback.success { background: rgba(0, 204, 100, 0.95); color: #000; }
+  .feedback.info { background: rgba(0, 210, 255, 0.95); color: #000; }
+
+  .label-3d {
+    position: fixed;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #00d2ff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    color: #00d2ff;
+    pointer-events: none;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: opacity 0.3s;
+  }
+
+  /* ============ QUIZ PISA MODAL ============ */
+  #pisa-modal {
+    position: fixed; inset: 0; z-index: 60;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+  }
+  #pisa-modal.visible { display: flex; }
+  .pisa-box {
+    background: rgba(10, 15, 30, 0.98);
+    border: 1px solid rgba(255, 190, 11, 0.3);
+    border-radius: 20px; padding: 28px;
+    max-width: 640px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    position: relative;
+  }
+  .pisa-box h2 {
+    font-size: 22px; margin-bottom: 6px;
+    background: linear-gradient(90deg, #ffbe0b, #ff006e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-right: 30px;
+  }
+  .pisa-scenario {
+    background: rgba(255, 190, 11, 0.08);
+    border-left: 3px solid #ffbe0b;
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin: 12px 0 20px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #f0e0a0;
+  }
+  .pisa-scenario b { color: #ffbe0b; }
+  .pisa-progress { 
+    display: flex; justify-content: space-between; 
+    padding: 8px 12px; margin-bottom: 16px; 
+    background: rgba(255,255,255,0.04); 
+    border-radius: 10px; font-size: 12px; 
+  }
+  .pisa-progress .q-num { color: #ffbe0b; font-weight: 600; }
+  .pisa-progress .q-score { color: #00d2ff; font-weight: 600; }
+  .pisa-question { 
+    font-size: 15px; line-height: 1.6; 
+    margin-bottom: 16px; color: #fff;
+    font-weight: 500;
+  }
+  .pisa-choices { display: flex; flex-direction: column; gap: 8px; }
+  .pisa-choice {
+    padding: 12px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; font-size: 13px; line-height: 1.5;
+    color: #d0d8e8; text-align: left;
+    transition: all 0.2s;
+  }
+  .pisa-choice:hover:not(.disabled) { background: rgba(255, 190, 11, 0.1); border-color: rgba(255, 190, 11, 0.3); }
+  .pisa-choice.correct { background: rgba(0, 204, 0, 0.15); border-color: #00cc00; color: #90ee90; }
+  .pisa-choice.wrong { background: rgba(255, 0, 110, 0.15); border-color: #ff006e; color: #ff8fa3; }
+  .pisa-choice.disabled { pointer-events: none; opacity: 0.7; }
+  .pisa-feedback { margin-top: 12px; padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; display: none; }
+  .pisa-feedback.show { display: block; }
+  .pisa-feedback.correct-fb { background: rgba(0, 204, 0, 0.1); border-left: 3px solid #00cc00; color: #90ee90; }
+  .pisa-feedback.wrong-fb { background: rgba(255, 0, 110, 0.1); border-left: 3px solid #ff006e; color: #ff8fa3; }
+  .pisa-next-btn { 
+    margin-top: 14px; width: 100%; padding: 12px; 
+    border-radius: 10px; 
+    background: linear-gradient(135deg, #ffbe0b, #ff006e); 
+    color: white; border: none; font-weight: 600; 
+    cursor: pointer; font-size: 13px; display: none; 
+  }
+  .pisa-next-btn.show { display: block; }
+  .pisa-result { text-align: center; padding: 20px; }
+  .pisa-result .score-big { 
+    font-size: 56px; font-weight: 800; 
+    background: linear-gradient(135deg, #ffbe0b, #ff006e); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; 
+    margin: 10px 0; 
+  }
+  .pisa-result .score-label { font-size: 14px; color: #8899aa; margin-bottom: 16px; }
+  .pisa-result .score-msg { font-size: 14px; line-height: 1.6; color: #d0d8e8; margin-bottom: 20px; }
+  .pisa-close-btn { 
+    padding: 12px 24px; border-radius: 10px; 
+    background: linear-gradient(135deg, #ff006e, #8338ec); 
+    color: white; border: none; font-weight: 600; 
+    cursor: pointer; font-size: 13px; 
+  }
+  .close-modal {
+    position: absolute; top: 12px; right: 12px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white; cursor: pointer; font-size: 16px;
+  }
+  .close-modal:hover { background: rgba(255, 100, 100, 0.3); }
+</style>
+</head>
+<body>
+
+<div id="home-screen">
+  <h1>⚗️ SeparaciónAR</h1>
+  <div class="subtitle">Laboratorio de Técnicas de Separación</div>
+  <div class="mode-grid">
+    <div class="mode-card" data-mode="filtration">
+      <span class="emoji">🔽</span>
+      <div class="title">Filtración</div>
+      <div class="desc">Separa arena del agua con un filtro</div>
+    </div>
+    <div class="mode-card" data-mode="decantation">
+      <span class="emoji">️</span>
+      <div class="title">Decantación</div>
+      <div class="desc">Separa aceite y agua por densidad</div>
+    </div>
+    <div class="mode-card" data-mode="evaporation">
+      <span class="emoji">♨️</span>
+      <div class="title">Evaporación</div>
+      <div class="desc">Recupera la sal del agua salada</div>
+    </div>
+    <div class="mode-card" data-mode="magnetism">
+      <span class="emoji">🧲</span>
+      <div class="title">Imantación</div>
+      <div class="desc">Separa hierro de la arena</div>
+    </div>
+    <div class="mode-card" data-mode="distillation">
+      <span class="emoji">🌡️</span>
+      <div class="title">Destilación</div>
+      <div class="desc">Obtén agua pura</div>
+    </div>
+    <div class="mode-card pisa" data-mode="pisa">
+      <span class="emoji">🏆</span>
+      <div class="title">Desafío PISA</div>
+      <div class="desc">Resuelve un problema real de separación</div>
+    </div>
+  </div>
+</div>
+
+<div id="lab-ui">
+  <div id="controls" class="ui-panel">
+    <h2 id="exp-title">Experimento</h2>
+    <div id="steps-container"></div>
+  </div>
+
+  <div id="info-panel" class="ui-panel">
+    <div id="info-text">Presiona el <b>Paso 1</b> para comenzar.</div>
+  </div>
+
+  <button id="back-btn">← Salir</button>
+</div>
+
+<div id="canvas-container"></div>
+<div class="feedback" id="feedback"></div>
+<div id="labels-container"></div>
+
+<!-- MODAL PISA -->
+<div id="pisa-modal">
+  <div class="pisa-box">
+    <button class="close-modal" id="close-pisa">✕</button>
+    <h2>🏆 Desafío PISA — El Agua del Mar</h2>
+    <div id="pisa-content"></div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+console.log('✅ Script chargé');
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x050810, 0.02);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(4, 3, 6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 1.2, 0);
+
+scene.add(new THREE.AmbientLight(0x404060, 0.6));
+const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+mainLight.position.set(5, 8, 5);
+scene.add(mainLight);
+
+const burnerLight = new THREE.PointLight(0xff4400, 0, 6);
+burnerLight.position.set(0, 0.5, 0);
+scene.add(burnerLight);
+
+const table = new THREE.Mesh(
+  new THREE.BoxGeometry(12, 0.2, 6),
+  new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.8 })
+);
+table.position.y = -0.1;
+scene.add(table);
+
+// ============ MATÉRIAUX ============
+const glassMat = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, roughness: 0.05, transmission: 0.95,
+  thickness: 0.5, ior: 1.5, transparent: true, opacity: 0.3, side: THREE.DoubleSide
+});
+const waterMat = new THREE.MeshPhysicalMaterial({
+  color: 0x4dabf7, roughness: 0.1, transmission: 0.6,
+  transparent: true, opacity: 0.8
+});
+const oilMat = new THREE.MeshPhysicalMaterial({
+  color: 0xffd700, roughness: 0.2, transparent: true, opacity: 0.85
+});
+const saltWaterMat = new THREE.MeshPhysicalMaterial({
+  color: 0x88ccff, roughness: 0.1, transparent: true, opacity: 0.75
+});
+const metalMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.9 });
+const burnerMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8, metalness: 0.5 });
+const burnerGlowMat = new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff4400, emissiveIntensity: 2 });
+const sandMat = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.9 });
+const ironMat = new THREE.MeshStandardMaterial({ color: 0x404040, metalness: 0.95, roughness: 0.3 });
+const magnetRedMat = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.3 });
+const magnetBlueMat = new THREE.MeshStandardMaterial({ color: 0x0000ff, roughness: 0.3 });
+const porcelainMat = new THREE.MeshStandardMaterial({ color: 0xf5f5dc, roughness: 0.7 });
+const saltMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.3, clearcoat: 0.5 });
+const paperMat = new THREE.MeshStandardMaterial({ color: 0xfff8dc, roughness: 0.9 });
+const muddyWaterMat = new THREE.MeshPhysicalMaterial({
+  color: 0x8b6f47, roughness: 0.4, transparent: true, opacity: 0.75
+});
+
+// ============ ÉTAT ============
+let currentMode = 'distillation';
+let currentStep = 0;
+let animState = {
+  boiling: false, distilling: false,
+  bubbles: [], steam: [], drops: [],
+  ironParticles: [], sandParticles: [],
+  flame: null, receiverLiquid: null,
+  magnet: null, magnetTarget: null,
+  evapLiquid: null, mainBeaker: null,
+  filterSand: null, mixLiquid: null,
+  saltCrystals: null, pouring: false
+};
+
+// ============ ÉTIQUETTES FLOTTANTES ============
+const labelsContainer = document.getElementById('labels-container');
+const labels3D = [];
+
+function createLabel(text, position3D) {
+  const div = document.createElement('div');
+  div.className = 'label-3d';
+  div.textContent = text;
+  labelsContainer.appendChild(div);
+  labels3D.push({ element: div, position: position3D.clone() });
+}
+
+function updateLabels() {
+  labels3D.forEach(label => {
+    const pos = label.position.clone();
+    pos.project(camera);
+    const x = (pos.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-pos.y * 0.5 + 0.5) * window.innerHeight;
+    label.element.style.left = x + 'px';
+    label.element.style.top = y + 'px';
+    label.element.style.opacity = pos.z < 1 ? '1' : '0';
+  });
+}
+
+function clearLabels() {
+  labels3D.forEach(l => l.element.remove());
+  labels3D.length = 0;
+}
+
+// ============ CONSTRUCTEURS ============
+
+function buildDistillation() {
+  const g = new THREE.Group();
+  
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.05, 0.4), metalMat);
+  base.position.set(-2, 0.025, 0); g.add(base);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.5, 16), metalMat);
+  rod.position.set(-2, 1.75, 0); g.add(rod);
+  
+  const bBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.15, 32), burnerMat);
+  bBase.position.set(-1.3, 0.075, 0); g.add(bBase);
+  const bTube = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.5, 16), burnerMat);
+  bTube.position.set(-1.3, 0.4, 0); g.add(bTube);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.4, 16), burnerGlowMat);
+  flame.position.set(-1.3, 0.85, 0); flame.visible = false;
+  g.add(flame);
+  animState.flame = flame;
+  
+  const flaskBody = new THREE.Mesh(new THREE.SphereGeometry(0.75, 32, 32), glassMat);
+  flaskBody.position.set(-1.3, 1.5, 0); g.add(flaskBody);
+  const flaskNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16, 1, true), glassMat);
+  flaskNeck.position.set(-1.3, 2.25, 0); g.add(flaskNeck);
+  const flaskLiquid = new THREE.Mesh(
+    new THREE.SphereGeometry(0.67, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.75),
+    saltWaterMat
+  );
+  flaskLiquid.position.set(-1.3, 1.4, 0); g.add(flaskLiquid);
+  
+  const headVert = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.35, 16, 1, true), glassMat);
+  headVert.position.set(-1.3, 2.7, 0); g.add(headVert);
+  const headSide = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.7, 16, 1, true), glassMat);
+  headSide.position.set(-0.8, 2.75, 0); headSide.rotation.z = -Math.PI / 4; g.add(headSide);
+  
+  const thermo = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 8), glassMat);
+  thermo.position.set(-1.3, 2.9, 0); g.add(thermo);
+  const thermoBulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 12, 12), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+  thermoBulb.position.set(-1.3, 2.4, 0); g.add(thermoBulb);
+  
+  const condInner = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 16, 1, true), glassMat);
+  condInner.position.set(0.2, 2.2, 0); condInner.rotation.z = -Math.PI / 5; g.add(condInner);
+  const condOuter = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.2, 16, 1, true),
+    new THREE.MeshPhysicalMaterial({ color: 0xaaddff, transmission: 0.8, transparent: true, opacity: 0.25, side: THREE.DoubleSide }));
+  condOuter.position.set(0.2, 2.2, 0); condOuter.rotation.z = -Math.PI / 5; g.add(condOuter);
+  
+  const recvBody = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.55, 1, 32, 1, true), glassMat);
+  recvBody.position.set(1.5, 0.6, 0); g.add(recvBody);
+  const recvBottom = new THREE.Mesh(new THREE.CircleGeometry(0.55, 32), glassMat);
+  recvBottom.rotation.x = -Math.PI / 2; recvBottom.position.set(1.5, 0.1, 0); g.add(recvBottom);
+  const recvLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32), waterMat);
+  recvLiquid.position.set(1.5, 0.15, 0); recvLiquid.scale.y = 0;
+  g.add(recvLiquid);
+  animState.receiverLiquid = recvLiquid;
+  
+  scene.add(g);
+  
+  createLabel('MATRAZ', new THREE.Vector3(-1.3, 2.5, 0));
+  createLabel('CONDENSADOR', new THREE.Vector3(0.2, 2.8, 0));
+  createLabel('RECEPTOR', new THREE.Vector3(1.5, 1.3, 0));
+}
+
+function buildFiltration() {
+  const g = new THREE.Group();
+  
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 0.4), metalMat);
+  base.position.set(-1.2, 0.025, 0); g.add(base);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.2, 16), metalMat);
+  rod.position.set(-1.2, 1.6, 0); g.add(rod);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.025, 8, 32), metalMat);
+  ring.rotation.x = Math.PI / 2; ring.position.set(-1.2, 2.1, 0); g.add(ring);
+  
+  const funnel = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.8, 32, 1, true), glassMat);
+  funnel.position.set(-1.2, 2.6, 0); g.add(funnel);
+  const funnelStem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 16, 1, true), glassMat);
+  funnelStem.position.set(-1.2, 2.0, 0); g.add(funnelStem);
+  
+  const filter = new THREE.Mesh(new THREE.CircleGeometry(0.45, 32), paperMat);
+  filter.rotation.x = -Math.PI / 2; filter.position.set(-1.2, 2.3, 0); g.add(filter);
+  
+  const sandInFilter = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.4, 0.4, 0.15, 32),
+    sandMat
+  );
+  sandInFilter.position.set(-1.2, 2.35, 0);
+  sandInFilter.visible = false;
+  g.add(sandInFilter);
+  animState.filterSand = sandInFilter;
+  
+  const recvBody = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.1, 32, 1, true), glassMat);
+  recvBody.position.set(-1.2, 0.55, 0); g.add(recvBody);
+  const recvBottom = new THREE.Mesh(new THREE.CircleGeometry(0.45, 32), glassMat);
+  recvBottom.rotation.x = -Math.PI / 2; recvBottom.position.set(-1.2, 0, 0); g.add(recvBottom);
+  const recvLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 32), waterMat);
+  recvLiquid.position.set(-1.2, 0.05, 0); recvLiquid.scale.y = 0;
+  g.add(recvLiquid);
+  animState.receiverLiquid = recvLiquid;
+  
+  const mixBody = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.1, 32, 1, true), glassMat);
+  mixBody.position.set(1.5, 1.2, 0); g.add(mixBody);
+  const mixBottom = new THREE.Mesh(new THREE.CircleGeometry(0.45, 32), glassMat);
+  mixBottom.rotation.x = -Math.PI / 2; mixBottom.position.set(1.5, 0.65, 0); g.add(mixBottom);
+  const mixLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.8, 32), muddyWaterMat);
+  mixLiquid.position.set(1.5, 1.0, 0);
+  g.add(mixLiquid);
+  animState.mixLiquid = mixLiquid;
+  
+  scene.add(g);
+  
+  for (let i = 0; i < 50; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), sandMat);
+    p.position.set(
+      1.5 + (Math.random()-0.5)*0.7,
+      0.8 + Math.random()*0.6,
+      (Math.random()-0.5)*0.7
+    );
+    p.userData.type = 'sand';
+    p.userData.originalPos = p.position.clone();
+    scene.add(p);
+    animState.sandParticles.push(p);
+  }
+  
+  createLabel('EMBUDO + FILTRO', new THREE.Vector3(-1.2, 3.1, 0));
+  createLabel('AGUA + ARENA', new THREE.Vector3(1.5, 2.0, 0));
+  createLabel('AGUA FILTRADA', new THREE.Vector3(-1.2, 1.3, 0));
+}
+
+function buildDecantation() {
+  const g = new THREE.Group();
+  
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 1.6, 32, 1, true), glassMat);
+  body.position.y = 0.8; g.add(body);
+  const bottom = new THREE.Mesh(new THREE.CircleGeometry(0.7, 32), glassMat);
+  bottom.rotation.x = -Math.PI / 2; g.add(bottom);
+  
+  const water = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.7, 32), waterMat);
+  water.position.y = 0.35; g.add(water);
+  
+  const oil = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.6, 32), oilMat);
+  oil.position.y = 1.0; g.add(oil);
+  
+  const recvBody = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.2, 32, 1, true), glassMat);
+  recvBody.position.set(2, 0.6, 0); g.add(recvBody);
+  const recvBottom = new THREE.Mesh(new THREE.CircleGeometry(0.5, 32), glassMat);
+  recvBottom.rotation.x = -Math.PI / 2; recvBottom.position.set(2, 0, 0); g.add(recvBottom);
+  
+  g.position.set(-0.5, 0, 0);
+  scene.add(g);
+  animState.mainBeaker = g;
+  
+  createLabel('ACEITE (menos denso)', new THREE.Vector3(-0.5, 1.8, 0));
+  createLabel('AGUA (más densa)', new THREE.Vector3(-0.5, 0.8, 0));
+  createLabel('RECIPIENTE', new THREE.Vector3(1.5, 1.3, 0));
+}
+
+function buildEvaporation() {
+  const g = new THREE.Group();
+  
+  const bBase = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.2, 32), burnerMat);
+  bBase.position.y = 0.1; g.add(bBase);
+  const bTube = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.6, 16), burnerMat);
+  bTube.position.y = 0.5; g.add(bTube);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.5, 16), burnerGlowMat);
+  flame.position.y = 1.0; flame.visible = false;
+  g.add(flame);
+  animState.flame = flame;
+  
+  for (let i = 0; i < 3; i++) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 8), metalMat);
+    const angle = (i / 3) * Math.PI * 2;
+    leg.position.set(Math.cos(angle) * 0.5, 0.6, Math.sin(angle) * 0.5);
+    leg.rotation.z = Math.cos(angle) * 0.15;
+    leg.rotation.x = Math.sin(angle) * 0.15;
+    g.add(leg);
+  }
+  const tripodRing = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.03, 8, 32), metalMat);
+  tripodRing.rotation.x = Math.PI / 2; tripodRing.position.y = 1.2;
+  g.add(tripodRing);
+  
+  const dish = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.6),
+    porcelainMat
+  );
+  dish.position.y = 1.25;
+  g.add(dish);
+  
+  const liquid = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.48, 0.48, 0.15, 32),
+    saltWaterMat
+  );
+  liquid.position.y = 1.35;
+  g.add(liquid);
+  animState.evapLiquid = liquid;
+  
+  const saltGroup = new THREE.Group();
+  saltGroup.position.y = 1.3;
+  saltGroup.visible = false;
+  for (let i = 0; i < 20; i++) {
+    const crystal = new THREE.Mesh(
+      new THREE.BoxGeometry(0.06 + Math.random()*0.04, 0.04 + Math.random()*0.03, 0.06 + Math.random()*0.04),
+      saltMat
+    );
+    crystal.position.set(
+      (Math.random()-0.5)*0.7,
+      Math.random()*0.08,
+      (Math.random()-0.5)*0.7
+    );
+    crystal.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    saltGroup.add(crystal);
+  }
+  g.add(saltGroup);
+  animState.saltCrystals = saltGroup;
+  
+  scene.add(g);
+  
+  createLabel('CÁPSULA DE PORCELANA', new THREE.Vector3(0, 2.0, 0));
+  createLabel('AGUA SALADA', new THREE.Vector3(0, 1.6, 0));
+  createLabel('MECHERO', new THREE.Vector3(0, 0.3, 0));
+}
+
+function buildMagnetism() {
+  const g = new THREE.Group();
+  
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.2, 32, 1, true), glassMat);
+  body.position.y = 0.6; g.add(body);
+  const bottom = new THREE.Mesh(new THREE.CircleGeometry(0.6, 32), glassMat);
+  bottom.rotation.x = -Math.PI / 2; g.add(bottom);
+  scene.add(g);
+  
+  for (let i = 0; i < 50; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), sandMat);
+    p.position.set((Math.random()-0.5)*1, 0.1 + Math.random()*0.4, (Math.random()-0.5)*1);
+    p.userData.type = 'sand';
+    p.userData.originalPos = p.position.clone();
+    scene.add(p);
+    animState.sandParticles.push(p);
+  }
+  
+  for (let i = 0; i < 25; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), ironMat);
+    p.position.set((Math.random()-0.5)*1, 0.1 + Math.random()*0.4, (Math.random()-0.5)*1);
+    p.userData.type = 'iron';
+    p.userData.originalPos = p.position.clone();
+    scene.add(p);
+    animState.ironParticles.push(p);
+  }
+  
+  const magnet = new THREE.Group();
+  const arm1 = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.6, 0.15), magnetRedMat);
+  arm1.position.set(-0.2, 0.3, 0); magnet.add(arm1);
+  const arm2 = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.6, 0.15), magnetBlueMat);
+  arm2.position.set(0.2, 0.3, 0); magnet.add(arm2);
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.15, 0.15), metalMat);
+  bridge.position.y = 0.6; magnet.add(bridge);
+  magnet.position.set(2.5, 2.5, 0);
+  scene.add(magnet);
+  animState.magnet = magnet;
+  
+  createLabel('ARENA + HIERRO', new THREE.Vector3(0, 1.4, 0));
+  createLabel('IMÁN', new THREE.Vector3(2.5, 3.2, 0));
+}
+
+// ============ NETTOYAGE ============
+function clearScene() {
+  const toRemove = [];
+  scene.traverse(obj => {
+    if (obj !== table && obj !== mainLight && obj !== burnerLight && 
+        obj.parent === scene && obj.type !== 'Light') {
+      toRemove.push(obj);
+    }
+  });
+  toRemove.forEach(obj => { if (obj.parent) obj.parent.remove(obj); });
+  
+  animState.bubbles.forEach(b => scene.remove(b));
+  animState.steam.forEach(s => scene.remove(s));
+  animState.drops.forEach(d => scene.remove(d));
+  animState.bubbles = [];
+  animState.steam = [];
+  animState.drops = [];
+  animState.ironParticles = [];
+  animState.sandParticles = [];
+  animState.boiling = false;
+  animState.distilling = false;
+  animState.flame = null;
+  animState.receiverLiquid = null;
+  animState.magnet = null;
+  animState.magnetTarget = null;
+  animState.evapLiquid = null;
+  animState.mainBeaker = null;
+  animState.filterSand = null;
+  animState.mixLiquid = null;
+  animState.saltCrystals = null;
+  animState.pouring = false;
+  burnerLight.intensity = 0;
+  clearLabels();
+}
+
+// ============ PARTICULES ============
+function createBubble(x, y, z) {
+  const b = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 }));
+  b.position.set(x, y, z);
+  b.userData = { vel: new THREE.Vector3(0, 0.02, 0), life: 1 };
+  scene.add(b);
+  animState.bubbles.push(b);
+}
+
+function createSteam(x, y, z) {
+  const s = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 }));
+  s.position.set(x, y, z);
+  s.userData = { vel: new THREE.Vector3((Math.random()-0.5)*0.01, 0.03, (Math.random()-0.5)*0.01), life: 1 };
+  scene.add(s);
+  animState.steam.push(s);
+}
+
+function createDrop(x, y, z, targetY = 0.2) {
+  const d = new THREE.Mesh(new THREE.SphereGeometry(0.04, 12, 12),
+    new THREE.MeshPhysicalMaterial({ color: 0x4dabf7, transmission: 0.8, clearcoat: 1 }));
+  d.position.set(x, y, z);
+  d.userData = { vel: new THREE.Vector3(0, -0.04, 0), targetY };
+  scene.add(d);
+  animState.drops.push(d);
+}
+
+// ============ PROTOCOLES ============
+const protocols = {
+  distillation: [
+    { text: "Montar el equipo de destilación", action: "🔧 Montar equipo", 
+      info: "👀 <b>OBSERVA:</b> El matraz (izquierda) contiene <span class='highlight'>agua salada azul</span>. El receptor (derecha) está <b>vacío</b>. El mechero está apagado." },
+    { text: "Encender el mechero Bunsen", action: "🔥 Encender mechero", 
+      info: "🔥 <b>OBSERVA:</b> La llama <span class='highlight'>naranja</span> calienta el fondo del matraz. La temperatura del líquido sube." },
+    { text: "Observar la ebullición (100°C)", action: "💨 Hervir", 
+      info: " <b>OBSERVA:</b> Burbujas de <span class='highlight'>vapor</span> suben dentro del líquido. El agua hierve a 100°C." },
+    { text: "Observar la condensación", action: "❄️ Condensar", 
+      info: "️ <b>OBSERVA:</b> El vapor viaja por el condensador (tubo inclinado) y se <span class='highlight'>enfría</span>. Gotas de agua pura caen en el receptor." },
+    { text: "Recoger el destilado", action: "💧 Recoger", 
+      info: "✅ <b>RESULTADO:</b> El receptor contiene <span class='highlight'>agua pura</span> (sin sal). La sal quedó en el matraz original. ¡Destilación completada!" }
+  ],
+  filtration: [
+    { text: "Observar el equipo montado", action: "👁️ Observar equipo", 
+      info: "👀 <b>OBSERVA:</b> A la derecha: un vaso con <span class='highlight'>agua turbia marrón</span> (agua + arena). En el centro: un embudo con <span class='highlight'>filtro de papel blanco</span>. Abajo: un vaso vacío." },
+    { text: "Ver la mezcla agua + arena", action: "🔍 Ver mezcla", 
+      info: "🔍 <b>OBSERVA:</b> Las <span class='highlight'>partículas marrones</span> son la arena suspendida en el agua. Es una mezcla heterogénea: se ven las dos sustancias." },
+    { text: "Verter la mezcla sobre el filtro", action: "⬇️ Verter mezcla", 
+      info: "⬇️ <b>OBSERVA:</b> La mezcla se vierte en el embudo. El agua <span class='highlight'>pasa a través</span> del filtro. ¡La arena queda atrapada en el papel!" },
+    { text: "Observar el resultado", action: "✅ Ver resultado", 
+      info: "✅ <b>RESULTADO:</b> Arriba: <span class='highlight'>arena marrón</span> retenida en el filtro. Abajo: <span class='highlight'>agua azul clara</span> en el vaso receptor. ¡Separación exitosa!" },
+    { text: "Conclusión", action: "📓 Conclusión", 
+      info: "📓 <b>CONCLUSIÓN:</b> La filtración separa <span class='highlight'>sólidos insolubles</span> (arena) de líquidos (agua). Los poros del filtro dejan pasar el agua pero no la arena." }
+  ],
+  decantation: [
+    { text: "Observar agua y aceite", action: "👁️ Observar", 
+      info: "👀 <b>OBSERVA:</b> Dos líquidos en el mismo vaso. <span class='highlight'>Aceite amarillo</span> arriba, <span class='highlight'>agua azul</span> abajo. No se mezclan (inmiscibles)." },
+    { text: "Esperar separación de capas", action: "⏰ Esperar", 
+      info: "⏰ <b>OBSERVA:</b> Las capas están bien separadas. El aceite flota porque es <span class='highlight'>menos denso</span> que el agua." },
+    { text: "Inclinar y verter el aceite", action: "⚗️ Decantar", 
+      info: "⚗️ <b>OBSERVA:</b> El vaso se inclina. El <span class='highlight'>aceite sale primero</span> (está arriba). El agua queda en el fondo." },
+    { text: "Observar resultado", action: "✅ Ver", 
+      info: "✅ <b>RESULTADO:</b> Aceite en un recipiente, agua en otro. ¡Separados!" },
+    { text: "Conclusión", action: " Conclusión", 
+      info: " <b>CONCLUSIÓN:</b> La decantación separa líquidos <span class='highlight'>inmiscibles</span> aprovechando su diferencia de densidad." }
+  ],
+  evaporation: [
+    { text: "Observar la cápsula con agua salada", action: "️ Observar", 
+      info: " <b>OBSERVA:</b> La <span class='highlight'>cápsula de porcelana blanca</span> contiene agua salada (líquido azul claro). Es una disolución homogénea: no se ve la sal." },
+    { text: "Encender el mechero", action: " Calentar", 
+      info: " <b>OBSERVA:</b> La llama <span class='highlight'>naranja</span> calienta la cápsula. El agua comienza a evaporarse." },
+    { text: "Esperar evaporación", action: "♨️ Evaporar", 
+      info: "♨️ <b>OBSERVA:</b> <span class='highlight'>Vapor blanco</span> sale de la cápsula. El nivel del líquido <b>baja progresivamente</b>. El agua se convierte en gas." },
+    { text: "Observar los cristales de sal", action: "🔍 Cristales", 
+      info: "🔍 <b>OBSERVA:</b> ¡Aparecen <span class='highlight'>cristales blancos</span> en el fondo de la cápsula! Es la sal (NaCl) que estaba disuelta." },
+    { text: "Conclusión", action: "📓 Conclusión", 
+      info: "📓 <b>CONCLUSIÓN:</b> El agua (solvente) se evaporó a 100°C. La <span class='highlight'>sal (soluto)</span> quedó como residuo sólido. ¡Evaporación completada!" }
+  ],
+  magnetism: [
+    { text: "Observar mezcla arena + hierro", action: "👁️ Observar", 
+      info: "👀 <b>OBSERVA:</b> Partículas <span class='highlight'>beige</span> (arena) y <span class='highlight'>grises metálicas</span> (hierro) mezcladas." },
+    { text: "Acercar imán", action: "🧲 Acercar", 
+      info: "🧲 <b>OBSERVA:</b> El imán se acerca. Las partículas de <span class='highlight'>hierro</span> son atraídas. La arena no se mueve." },
+    { text: "Levantar imán con hierro", action: "⬆️ Levantar", 
+      info: "⬆️ <b>OBSERVA:</b> El hierro queda <span class='highlight'>pegado al imán</span>. La arena se queda abajo." },
+    { text: "Separar en otro recipiente", action: "✅ Separar", 
+      info: "✅ <b>RESULTADO:</b> Hierro separado de la arena." },
+    { text: "Conclusión", action: "📓 Conclusión", 
+      info: "📓 <b>CONCLUSIÓN:</b> El hierro es <span class='highlight'>magnético</span>, la arena no. Propiedad física aprovechada para separar." }
+  ]
+};
+
+// ============ QUIZ PISA ============
+const pisaQuestions = [
+  {
+    q: "Un pueblo costero no tiene acceso a agua potable. El agua del mar contiene sal disuelta, arena en suspensión y pequeños organismos. ¿Qué tipo de mezcla es el agua del mar?",
+    choices: [
+      "Una sustancia pura, porque es agua",
+      "Una mezcla homogénea, porque todo está disuelto",
+      "Una mezcla heterogénea compleja, con partes homogéneas y heterogéneas",
+      "Un compuesto químico"
+    ],
+    correct: 2,
+    explanation: "El agua del mar es una <b>mezcla heterogénea compleja</b>: tiene partes homogéneas (sal disuelta en agua = disolución) y partes heterogéneas (arena en suspensión, organismos visibles)."
+  },
+  {
+    q: "¿Cuál sería el PRIMER paso para purificar el agua del mar?",
+    choices: [
+      "Evaporar toda el agua para recuperar la sal",
+      "Filtrar para eliminar la arena y los organismos",
+      "Usar un imán para atraer las impurezas",
+      "Decantar para separar el agua de la sal"
+    ],
+    correct: 1,
+    explanation: "El primer paso es la <b>filtración</b>: elimina los sólidos insolubles (arena, organismos) que están en suspensión. La sal disuelta pasa a través del filtro."
+  },
+  {
+    q: "Después de filtrar, el agua aún contiene sal disuelta. ¿Qué técnica permite obtener agua pura (sin sal)?",
+    choices: [
+      "Filtración con un filtro más fino",
+      "Decantación",
+      "Imantación",
+      "Destilación"
+    ],
+    correct: 3,
+    explanation: "La <b>destilación</b> es la única técnica que separa un soluto disuelto (sal) del solvente (agua). El agua se evapora, se condensa y se recoge pura. La sal queda en el matraz."
+  },
+  {
+    q: "¿Por qué la filtración sola NO basta para obtener agua potable del mar?",
+    choices: [
+      "Porque el filtro se rompe con el agua salada",
+      "Porque la sal está disuelta y pasa a través de los poros del filtro",
+      "Porque la filtración solo funciona con líquidos calientes",
+      "Porque la sal es magnética y no se puede filtrar"
+    ],
+    correct: 1,
+    explanation: "La sal está <b>disuelta</b> en el agua: sus partículas son del tamaño de moléculas, mucho más pequeñas que los poros del filtro. Por eso pasa a través del filtro sin ser retenida."
+  },
+  {
+    q: "En una planta desalinizadora real, ¿qué técnica industrial se usa principalmente para obtener agua potable del mar?",
+    choices: [
+      "Filtración con arena",
+      "Decantación en grandes tanques",
+      "Ósmosis inversa (variante de filtración a alta presión)",
+      "Imantación a gran escala"
+    ],
+    correct: 2,
+    explanation: "La <b>ósmosis inversa</b> es la técnica industrial más usada: hace pasar el agua del mar a través de membranas semipermeables a alta presión, reteniendo la sal. Es una forma avanzada de filtración."
+  },
+  {
+    q: "Si quisieras recuperar la SAL del agua de mar (no el agua), ¿qué técnica usarías?",
+    choices: [
+      "Destilación",
+      "Evaporación",
+      "Filtración",
+      "Decantación"
+    ],
+    correct: 1,
+    explanation: "La <b>evaporación</b> permite recuperar el soluto (sal). Se calienta el agua de mar hasta que el agua se evapora, dejando la sal como residuo sólido. Es lo que hacen las salinas."
+  }
+];
+
+let pisaState = { currentQ: 0, score: 0, answered: false };
+
+function startPISA() {
+  pisaState = { currentQ: 0, score: 0, answered: false };
+  document.getElementById('pisa-modal').classList.add('visible');
+  renderPisaQuestion();
+}
+
+function renderPisaQuestion() {
+  const q = pisaQuestions[pisaState.currentQ];
+  document.getElementById('pisa-content').innerHTML = `
+    <div class="pisa-scenario">
+      <b>🌊 Escenario:</b> Un pueblo costero no tiene acceso a agua potable. El agua del mar contiene sal disuelta, arena en suspensión y pequeños organismos. Un científico debe diseñar un proceso para obtener agua potable.
+    </div>
+    <div class="pisa-progress">
+      <span class="q-num">Pregunta ${pisaState.currentQ + 1} / ${pisaQuestions.length}</span>
+      <span class="q-score">Puntuación: ${pisaState.score} / ${pisaQuestions.length}</span>
+    </div>
+    <div class="pisa-question">${q.q}</div>
+    <div class="pisa-choices">
+      ${q.choices.map((c, i) => `<button class="pisa-choice" data-idx="${i}">${c}</button>`).join('')}
+    </div>
+    <div class="pisa-feedback" id="pisa-feedback"></div>
+    <button class="pisa-next-btn" id="pisa-next-btn">${pisaState.currentQ < pisaQuestions.length - 1 ? 'Siguiente pregunta →' : 'Ver resultado final 🏆'}</button>
+  `;
+  document.querySelectorAll('.pisa-choice').forEach(btn => btn.addEventListener('click', () => handlePisaAnswer(parseInt(btn.dataset.idx))));
+  document.getElementById('pisa-next-btn').addEventListener('click', () => {
+    if (pisaState.currentQ < pisaQuestions.length - 1) { pisaState.currentQ++; pisaState.answered = false; renderPisaQuestion(); }
+    else showPisaResult();
+  });
+}
+
+function handlePisaAnswer(idx) {
+  if (pisaState.answered) return;
+  pisaState.answered = true;
+  const q = pisaQuestions[pisaState.currentQ];
+  document.querySelectorAll('.pisa-choice').forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === idx && i !== q.correct) btn.classList.add('wrong');
+  });
+  const fb = document.getElementById('pisa-feedback');
+  if (idx === q.correct) { 
+    pisaState.score++; 
+    fb.className = 'pisa-feedback show correct-fb'; 
+    fb.innerHTML = `✅ <b>¡Correcto!</b> ${q.explanation}`; 
+  } else { 
+    fb.className = 'pisa-feedback show wrong-fb'; 
+    fb.innerHTML = `❌ <b>Incorrecto.</b> ${q.explanation}`; 
+  }
+  document.getElementById('pisa-next-btn').classList.add('show');
+}
+
+function showPisaResult() {
+  const total = pisaQuestions.length;
+  const percent = Math.round((pisaState.score / total) * 100);
+  let msg = '';
+  if (percent === 100) msg = '🏆 <b>¡Excelente!</b> Dominas las técnicas de separación. Podrías diseñar una planta desalinizadora.';
+  else if (percent >= 75) msg = '🌟 <b>¡Muy bien!</b> Tienes un buen dominio. Repasa las preguntas falladas.';
+  else if (percent >= 50) msg = '👍 <b>Aprobado.</b> Conoces las bases, pero necesitas practicar más las técnicas.';
+  else msg = '📚 <b>Necesitas repasar.</b> Vuelve a hacer las experiencias del laboratorio antes de reintentar.';
+  
+  document.getElementById('pisa-content').innerHTML = `
+    <div class="pisa-scenario">
+      <b>🌊 Escenario:</b> Un pueblo costero no tiene acceso a agua potable. El agua del mar contiene sal disuelta, arena en suspensión y pequeños organismos. Un científico debe diseñar un proceso para obtener agua potable.
+    </div>
+    <div class="pisa-result">
+      <div style="font-size: 64px;">${percent === 100 ? '🏆' : percent >= 75 ? '🌟' : percent >= 50 ? '👍' : '📚'}</div>
+      <div class="score-big">${pisaState.score} / ${total}</div>
+      <div class="score-label">${percent}% de aciertos</div>
+      <div class="score-msg">${msg}</div>
+      <div style="background: rgba(0, 210, 255, 0.08); border-left: 3px solid #00d2ff; padding: 14px; border-radius: 8px; margin: 16px 0; text-align: left; font-size: 12px; line-height: 1.6; color: #a8d8ea;">
+        <b style="color: #00d2ff;">📋 Solución completa del problema:</b><br><br>
+        <b>Paso 1 — Filtración:</b> Elimina arena y organismos (sólidos insolubles).<br>
+        <b>Paso 2 — Destilación:</b> Separa el agua pura de la sal disuelta.<br><br>
+        <b>¿Por qué este orden?</b> La filtración primero protege el equipo de destilación de los sólidos. La destilación después elimina la sal disuelta que la filtración no puede retener.<br><br>
+        <i style="color: #ffbe0b;">Competencia PISA evaluada: "Explicar fenómenos científicamente" — aplicar conocimientos de separación de mezclas a un problema real.</i>
+      </div>
+      <button class="pisa-close-btn" id="pisa-close-btn-final">Cerrar y volver al laboratorio</button>
+    </div>
+  `;
+  document.getElementById('pisa-close-btn-final').addEventListener('click', () => { 
+    document.getElementById('pisa-modal').classList.remove('visible'); 
+  });
+}
+
+document.getElementById('close-pisa').addEventListener('click', () => {
+  document.getElementById('pisa-modal').classList.remove('visible');
+});
+
+// ============ UI ============
+function updateUI() {
+  const container = document.getElementById('steps-container');
+  container.innerHTML = '';
+  const steps = protocols[currentMode];
+  steps.forEach((step, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'step-btn';
+    if (i < currentStep) btn.classList.add('done');
+    if (i === currentStep) btn.classList.add('active');
+    if (i > currentStep) btn.disabled = true;
+    btn.innerHTML = `<span class="num">${i < currentStep ? '✓' : i + 1}</span><span>${step.text}</span>`;
+    if (i === currentStep) btn.onclick = () => executeStep(i);
+    container.appendChild(btn);
+  });
+}
+
+function executeStep(index) {
+  currentStep = index + 1;
+  document.getElementById('info-text').innerHTML = protocols[currentMode][index].info;
+  updateUI();
+  
+  if (currentMode === 'distillation') {
+    if (index === 1) { animState.flame.visible = true; burnerLight.intensity = 3; }
+    if (index === 2) animState.boiling = true;
+    if (index === 3) animState.distilling = true;
+  }
+  
+  if (currentMode === 'filtration') {
+    if (index === 2) { animState.pouring = true; }
+    if (index === 3) { 
+      animState.pouring = false;
+      if (animState.filterSand) animState.filterSand.visible = true;
+    }
+  }
+  
+  if (currentMode === 'evaporation') {
+    if (index === 1) { animState.flame.visible = true; burnerLight.intensity = 3; animState.boiling = true; }
+    if (index === 3) { 
+      if (animState.saltCrystals) animState.saltCrystals.visible = true;
+      animState.boiling = false;
+    }
+  }
+  
+  if (currentMode === 'magnetism') {
+    if (index === 1) animState.magnetTarget = new THREE.Vector3(0, 1.5, 0);
+    if (index === 2) animState.magnetTarget = new THREE.Vector3(0, 2.5, 0);
+  }
+  
+  if (index === 4) showFeedback('🎉 ¡Experimento completado!', 'success');
+  else showFeedback('✓ Paso completado', 'info');
+}
+
+function setMode(mode) {
+  if (mode === 'pisa') {
+    startPISA();
+    return;
+  }
+  
+  currentMode = mode;
+  currentStep = 0;
+  clearScene();
+  
+  document.getElementById('home-screen').classList.add('hidden');
+  document.getElementById('lab-ui').classList.add('active');
+  
+  const titles = {
+    distillation: '🌡️ Destilación',
+    filtration: '🔽 Filtración',
+    decantation: '⚗️ Decantación',
+    evaporation: '♨️ Evaporación',
+    magnetism: '🧲 Imantación'
+  };
+  document.getElementById('exp-title').textContent = titles[mode];
+  
+  if (mode === 'distillation') buildDistillation();
+  else if (mode === 'filtration') buildFiltration();
+  else if (mode === 'decantation') buildDecantation();
+  else if (mode === 'evaporation') buildEvaporation();
+  else if (mode === 'magnetism') buildMagnetism();
+  
+  updateUI();
+  document.getElementById('info-text').innerHTML = 'Presiona el <b>Paso 1</b> para comenzar. <i style="color:#8899aa;">(Observa la escena 3D mientras avanzas)</i>';
+}
+
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => setMode(card.dataset.mode));
+});
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('home-screen').classList.remove('hidden');
+  document.getElementById('lab-ui').classList.remove('active');
+  clearScene();
+});
+
+const feedback = document.getElementById('feedback');
+function showFeedback(text, type = 'success') {
+  feedback.textContent = text;
+  feedback.className = 'feedback show ' + type;
+  setTimeout(() => feedback.classList.remove('show'), 2000);
+}
+
+// ============ ANIMATION ============
+const clock = new THREE.Clock();
+
+function animate() {
+  const time = clock.getElapsedTime();
+  
+  if (animState.flame && animState.flame.visible) {
+    animState.flame.scale.y = 1 + Math.sin(time * 10) * 0.15;
+    burnerLight.intensity = 2.5 + Math.sin(time * 15) * 0.5;
+  }
+  
+  if (currentMode === 'filtration' && animState.pouring && Math.random() < 0.2) {
+    createDrop(-1.2, 1.8, 0, 0.1);
+  }
+  
+  if (currentMode === 'evaporation' && animState.boiling) {
+    if (Math.random() < 0.3) createBubble((Math.random()-0.5)*0.6, 1.35, (Math.random()-0.5)*0.6);
+    if (Math.random() < 0.2) createSteam((Math.random()-0.5)*0.5, 1.6, (Math.random()-0.5)*0.5);
+    if (animState.evapLiquid && animState.evapLiquid.scale.y > 0.1) {
+      animState.evapLiquid.scale.y -= 0.001;
+      animState.evapLiquid.position.y -= 0.0005;
+    }
+  }
+  
+  if (currentMode === 'distillation') {
+    if (animState.boiling && Math.random() < 0.3) {
+      createBubble(-1.3 + (Math.random()-0.5)*0.5, 1.2 + Math.random()*0.3, (Math.random()-0.5)*0.5);
+    }
+    if (animState.distilling) {
+      if (Math.random() < 0.2) createSteam(-1.3, 2.8, 0);
+      if (Math.random() < 0.08) createDrop(1.5, 1.5, 0, 0.2);
+    }
+  }
+  
+  for (let i = animState.bubbles.length - 1; i >= 0; i--) {
+    const b = animState.bubbles[i];
+    b.position.add(b.userData.vel);
+    b.userData.life -= 0.02;
+    if (b.userData.life <= 0 || b.position.y > 2.5) {
+      scene.remove(b); animState.bubbles.splice(i, 1);
+    }
+  }
+  
+  for (let i = animState.steam.length - 1; i >= 0; i--) {
+    const s = animState.steam[i];
+    s.position.add(s.userData.vel);
+    s.userData.life -= 0.012;
+    s.scale.multiplyScalar(1.015);
+    if (s.userData.life <= 0) {
+      scene.remove(s); animState.steam.splice(i, 1);
+    }
+  }
+  
+  for (let i = animState.drops.length - 1; i >= 0; i--) {
+    const d = animState.drops[i];
+    d.position.add(d.userData.vel);
+    d.userData.vel.y -= 0.0015;
+    if (d.position.y < d.userData.targetY) {
+      scene.remove(d); animState.drops.splice(i, 1);
+      if (animState.receiverLiquid && animState.receiverLiquid.scale.y < 1) {
+        animState.receiverLiquid.scale.y = Math.min(1, animState.receiverLiquid.scale.y + 0.03);
+        animState.receiverLiquid.position.y = 0.1 + (animState.receiverLiquid.scale.y * 0.4);
+      }
+    }
+  }
+  
+  if (animState.magnet && animState.magnetTarget) {
+    animState.magnet.position.lerp(animState.magnetTarget, 0.04);
+    animState.ironParticles.forEach(p => {
+      const dist = p.position.distanceTo(animState.magnet.position);
+      if (dist < 2) {
+        const dir = new THREE.Vector3().subVectors(animState.magnet.position, p.position).normalize();
+        p.position.add(dir.multiplyScalar(0.03));
+      }
+    });
+  }
+  
+  if (currentMode === 'decantation' && currentStep >= 3 && animState.mainBeaker) {
+    animState.mainBeaker.rotation.z = THREE.MathUtils.lerp(animState.mainBeaker.rotation.z, -Math.PI / 4, 0.02);
+  }
+  
+  updateLabels();
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+console.log('✅ Tout est prêt');
+</script>
+</body>
+</html>

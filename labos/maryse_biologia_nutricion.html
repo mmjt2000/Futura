@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriLab Pro — Equilibrio Alimenticio y PISA</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --carb: #f59e0b;
+    --prot: #ef4444;
+    --lip: #3b82f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 30px;
+    grid-column: 1 / -1;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+  }
+
+  /* FORMULARIO */
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    color: var(--text);
+    font-size: 15px;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .gender-toggle { display: flex; gap: 8px; }
+  .gender-btn {
+    flex: 1; padding: 10px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    color: var(--muted); cursor: pointer;
+    font-weight: 600; text-align: center;
+  }
+  .gender-btn.active {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* RESULTADOS */
+  .result-box {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--accent);
+  }
+  .result-box .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .result-box .value { font-size: 24px; font-weight: 700; font-family: monospace; }
+  .result-box .detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .formula-box {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    color: #6ee7b7;
+    font-family: monospace;
+    margin-top: 16px;
+    line-height: 1.8;
+  }
+
+  /* PLATO VISUAL */
+  .plate-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+  }
+  .visual-plate {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--carb) 0% 0%, 
+      var(--prot) 0% 0%, 
+      var(--lip) 0% 0%, 
+      #334155 0% 100%
+    );
+    border: 8px solid #0f172a;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+    transition: background 0.5s ease;
+  }
+  .plate-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px; height: 100px;
+    background: var(--card);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+  .plate-center .kcal-total {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--warn);
+  }
+  .plate-center .kcal-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .plate-legend {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+  /* LISTA DE ALIMENTOS */
+  .food-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  .food-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .food-item:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--accent);
+  }
+  .food-info { flex: 1; }
+  .food-name { font-weight: 600; font-size: 14px; }
+  .food-macros { font-size: 11px; color: var(--muted); }
+  .food-kcal { font-weight: 700; color: var(--warn); margin-right: 12px; }
+  .add-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: white;
+    border: none; font-size: 18px; cursor: pointer;
+  }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 8px 16px; border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted); cursor: pointer;
+    font-weight: 600; font-size: 13px;
+  }
+  .tab-btn.active {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* VEREDICTO */
+  .verdict-box {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+  }
+  .verdict-box.show { display: block; }
+  .verdict-box.good { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid var(--accent); }
+  .verdict-box.warn { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid var(--warn); }
+  .verdict-box.bad { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid var(--danger); }
+
+  .btn-reset {
+    width: 100%; padding: 10px; margin-top: 12px;
+    border-radius: 8px; border: 1px solid var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger); font-weight: 600; cursor: pointer;
+  }
+
+  /* PISA */
+  .pisa-section { grid-column: 1 / -1; margin-top: 20px; }
+  .pisa-card {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .pisa-card h3 { color: #60a5fa; font-size: 16px; margin-bottom: 12px; }
+  .pisa-card p { font-size: 14px; margin-bottom: 12px; }
+  .pisa-formula {
+    background: rgba(0,0,0,0.3);
+    padding: 12px; border-radius: 8px;
+    font-family: monospace; font-size: 13px;
+    color: #fcd34d; margin: 12px 0;
+    border-left: 3px solid #f59e0b;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🍎 NutriLab Pro</h1>
+  <div class="subtitle">Calcula tus necesidades reales, construye tu plato y domina las preguntas PISA.</div>
+
+  <!-- COLUMNA IZQUIERDA: CÁLCULO -->
+  <div>
+    <div class="card">
+      <h2>👤 1. Tus Datos</h2>
+      <div class="gender-toggle">
+        <div class="gender-btn active" data-g="F">👩 Mujer</div>
+        <div class="gender-btn" data-g="M">👨 Hombre</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="weight" value="50" min="30" max="200">
+        </div>
+        <div class="form-group">
+          <label>Talla (cm)</label>
+          <input type="number" id="height" value="155" min="100" max="250">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Edad (años)</label>
+        <input type="number" id="age" value="14" min="10" max="100">
+      </div>
+      <div class="form-group">
+        <label>Actividad física</label>
+        <select id="activity">
+          <option value="1.2">Sedentaria (poco ejercicio)</option>
+          <option value="1.375">Ligera (1-3 días/semana)</option>
+          <option value="1.55" selected>Moderada (3-5 días/semana)</option>
+          <option value="1.725">Intensa (6-7 días/semana)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+      <h2>📊 2. Tus Necesidades Calculadas</h2>
+      <div class="result-box">
+        <div class="label">Tasa Metabólica Basal (TMB)</div>
+        <div class="value" id="res-tmb">— kcal</div>
+        <div class="detail">Energía mínima para sobrevivir en reposo</div>
+      </div>
+      <div class="result-box" style="border-left-color: #3b82f6;">
+        <div class="label">Gasto Energético Total (GET)</div>
+        <div class="value" id="res-get">— kcal</div>
+        <div class="detail">TMB × factor de actividad</div>
+      </div>
+      <div class="result-box" style="border-left-color: #f59e0b;">
+        <div class="label">Objetivo de Macros (por día)</div>
+        <div class="value" style="font-size: 16px;">
+           P: <span id="res-p">—</span>g &nbsp;|&nbsp; 
+          🍞 C: <span id="res-c">—</span>g &nbsp;|&nbsp; 
+          🥑 L: <span id="res-l">—</span>g
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <b> Fórmula de Harris-Benedict:</b><br>
+        <span id="formula-text">TMB = 447.6 + (9.2 × 50) + (3.1 × 155) - (4.3 × 14)</span><br>
+        GET = TMB × <span id="formula-act">1.55</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMNA DERECHA: PLATO -->
+  <div>
+    <div class="card">
+      <h2>🍽️ 3. Construye tu Plato</h2>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">
+        Haz clic en los alimentos para añadirlos. Observa cómo se llena tu plato y recibe un veredicto.
+      </p>
+      
+      <div class="tabs">
+        <div class="tab-btn active" data-tab="all">Todos</div>
+        <div class="tab-btn" data-tab="P">Proteínas</div>
+        <div class="tab-btn" data-tab="C">Glúcidos</div>
+        <div class="tab-btn" data-tab="L">Lípidos</div>
+        <div class="tab-btn" data-tab="V">Verduras</div>
+      </div>
+
+      <div class="food-list" id="food-list"></div>
+
+      <!-- PLATO VISUAL -->
+      <div class="plate-container">
+        <div class="visual-plate" id="visual-plate">
+          <div class="plate-center">
+            <div class="kcal-total" id="plate-kcal">0</div>
+            <div class="kcal-label">kcal</div>
+          </div>
+        </div>
+        <div class="plate-legend">
+          <div class="legend-item"><div class="legend-dot" style="background: var(--carb);"></div>Glúcidos <span id="leg-c">0%</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--prot);"></div>Proteínas <span id="leg-p">0%</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--lip);"></div>Lípidos <span id="leg-l">0%</span></div>
+        </div>
+      </div>
+
+      <div class="verdict-box" id="verdict"></div>
+      <button class="btn-reset" id="reset-plate">🗑️ Vaciar el plato</button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN PISA -->
+  <div class="pisa-section">
+    <div class="card">
+      <h2>📚 4. Guía de Resolución PISA (Imprescindible)</h2>
+      <p style="color: var(--muted); margin-bottom: 20px;">
+        Aquí tienes los métodos exactos y las fórmulas para responder a las preguntas tipo PISA sobre nutrición.
+      </p>
+
+      <div class="pisa-card">
+        <h3>🎯 Pregunta 1: Cálculo del GET de un atleta</h3>
+        <p><b>Enunciado tipo:</b> Un atleta de 70 kg, 180 cm, 25 años, actividad intensa. ¿Cuál es su GET?</p>
+        <div class="pisa-formula">
+          1. TMB (Hombre) = 88.4 + (13.4 × 70) + (4.8 × 180) - (5.7 × 25)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 88.4 + 938 + 864 - 142.5 = <b>1748 kcal/día</b><br>
+          2. GET = TMB × 1.725 (intensa) = 1748 × 1.725 = <b>3015 kcal/día</b>
+        </div>
+        <p><b>Interpretación:</b> Si come solo 2000 kcal, estará en déficit y perderá peso. Para mantenerse, debe comer ~3000 kcal.</p>
+      </div>
+
+      <div class="pisa-card">
+        <h3>🎯 Pregunta 2: IMC y salud</h3>
+        <p><b>Enunciado tipo:</b> María tiene 14 años, pesa 50 kg y mide 155 cm. Calcula su IMC e interpreta.</p>
+        <div class="pisa-formula">
+          IMC = Peso (kg) / Talla (m)²<br>
+          IMC = 50 / (1.55)² = 50 / 2.40 = <b>20.8 kg/m²</b>
+        </div>
+        <p><b>Interpretación OMS:</b> Entre 18.5 y 24.9 = <b>Peso normal</b>. María tiene una corpulencia sana.</p>
+      </div>
+
+      <div class="pisa-card">
+        <h3>🎯 Pregunta 3: Equilibrar un menú (Macros)</h3>
+        <p><b>Enunciado tipo:</b> Para un GET de 2000 kcal, reparte los macros (55% C, 20% P, 25% L).</p>
+        <div class="pisa-formula">
+          • Glúcidos (4 kcal/g): (2000 × 0.55) / 4 = 1100 / 4 = <b>275 g</b><br>
+          • Proteínas (4 kcal/g): (2000 × 0.20) / 4 = 400 / 4 = <b>100 g</b><br>
+          • Lípidos (9 kcal/g): (2000 × 0.25) / 9 = 500 / 9 = <b>56 g</b>
+        </div>
+        <p><b>Consejo salud:</b> Una comida equilibrada siempre contiene una fuente de proteínas, glúcidos complejos y verduras para la fibra.</p>
+      </div>
+
+      <div class="pisa-card">
+        <h3>🎯 Pregunta 4: Calidad de las calorías</h3>
+        <p><b>Enunciado tipo:</b> ¿Por qué 500 kcal de verduras no equivalen a 500 kcal de comida rápida?</p>
+        <p><b>Respuesta esperada:</b> La <b>densidad nutricional</b> es diferente. Las verduras aportan fibras, vitaminas y minerales con un índice glucémico bajo (energía estable). La comida rápida aporta "calorías vacías": grasas saturadas, azúcares refinados y sodio que provocan picos de insulina y no sacian.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DATOS ============
+let profile = { gender: 'F', weight: 50, height: 155, age: 14, activity: 1.55 };
+let targets = { kcal: 2000, p: 100, c: 275, l: 56 };
+let plate = [];
+
+const foods = [
+  { name: 'Pechuga de pollo', cat: 'P', kcal: 165, p: 31, c: 0, l: 3.6 },
+  { name: 'Huevo (1 unidad)', cat: 'P', kcal: 155, p: 13, l: 11, c: 1.1 },
+  { name: 'Salmón', cat: 'P', kcal: 208, p: 20, l: 13, c: 0 },
+  { name: 'Lentejas (cocidas)', cat: 'P', kcal: 116, p: 9, c: 20, l: 0.4 },
+  { name: 'Yogur natural', cat: 'P', kcal: 61, p: 3.5, c: 4.7, l: 3.3 },
+  { name: 'Arroz blanco (cocido)', cat: 'C', kcal: 130, p: 2.7, c: 28, l: 0.3 },
+  { name: 'Pan integral', cat: 'C', kcal: 250, p: 13, c: 41, l: 4 },
+  { name: 'Pasta (cocida)', cat: 'C', kcal: 131, p: 5, c: 25, l: 1 },
+  { name: 'Plátano', cat: 'C', kcal: 89, p: 1.1, c: 23, l: 0.3 },
+  { name: 'Avena', cat: 'C', kcal: 389, p: 16.9, c: 66, l: 6.9 },
+  { name: 'Aguacate', cat: 'L', kcal: 160, p: 2, c: 9, l: 15 },
+  { name: 'Almendras', cat: 'L', kcal: 579, p: 21, c: 22, l: 50 },
+  { name: 'Aceite de oliva (1 cda)', cat: 'L', kcal: 120, p: 0, c: 0, l: 14 },
+  { name: 'Brócoli', cat: 'V', kcal: 34, p: 2.8, c: 7, l: 0.4 },
+  { name: 'Espinacas', cat: 'V', kcal: 23, p: 2.9, c: 3.6, l: 0.4 },
+  { name: 'Zanahoria', cat: 'V', kcal: 41, p: 0.9, c: 10, l: 0.2 }
+];
+
+// ============ CALCULADORA ============
+function calculate() {
+  const { gender, weight, height, age, activity } = profile;
+  let tmb;
+  
+  if (gender === 'F') {
+    tmb = 447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age);
+  } else {
+    tmb = 88.4 + (13.4 * weight) + (4.8 * height) - (5.7 * age);
+  }
+  
+  const get = Math.round(tmb * activity);
+  tmb = Math.round(tmb);
+  
+  const pG = Math.round((get * 0.20) / 4);
+  const cG = Math.round((get * 0.55) / 4);
+  const lG = Math.round((get * 0.25) / 9);
+  
+  targets = { kcal: get, p: pG, c: cG, l: lG };
+  
+  document.getElementById('res-tmb').textContent = tmb + ' kcal';
+  document.getElementById('res-get').textContent = get + ' kcal';
+  document.getElementById('res-p').textContent = pG;
+  document.getElementById('res-c').textContent = cG;
+  document.getElementById('res-l').textContent = lG;
+  
+  const formulaStr = gender === 'F' 
+    ? `TMB = 447.6 + (9.2 × ${weight}) + (3.1 × ${height}) - (4.3 × ${age})`
+    : `TMB = 88.4 + (13.4 × ${weight}) + (4.8 × ${height}) - (5.7 × ${age})`;
+    
+  document.getElementById('formula-text').textContent = formulaStr;
+  document.getElementById('formula-act').textContent = activity;
+  
+  updatePlate();
+}
+
+// ============ PLATO VISUAL ============
+function renderFoods(filter = 'all') {
+  const list = document.getElementById('food-list');
+  list.innerHTML = '';
+  
+  const filtered = filter === 'all' ? foods : foods.filter(f => f.cat === filter);
+  
+  filtered.forEach((f) => {
+    const realIdx = foods.indexOf(f);
+    const div = document.createElement('div');
+    div.className = 'food-item';
+    div.innerHTML = `
+      <div class="food-info">
+        <div class="food-name">${f.name}</div>
+        <div class="food-macros">P: ${f.p}g · C: ${f.c}g · L: ${f.l}g</div>
+      </div>
+      <div class="food-kcal">${f.kcal}</div>
+      <button class="add-btn" onclick="addToPlate(${realIdx})">+</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+window.addToPlate = function(idx) {
+  plate.push(foods[idx]);
+  updatePlate();
+};
+
+function updatePlate() {
+  const totals = plate.reduce((acc, f) => {
+    acc.kcal += f.kcal; acc.p += f.p; acc.c += f.c; acc.l += f.l;
+    return acc;
+  }, { kcal: 0, p: 0, c: 0, l: 0 });
+  
+  // Cálculo de porcentajes para el gráfico circular
+  const macroTotal = totals.p + totals.c + totals.l || 1;
+  const pctC = (totals.c / macroTotal) * 100;
+  const pctP = (totals.p / macroTotal) * 100;
+  const pctL = (totals.l / macroTotal) * 100;
+  
+  // Actualizar gráfico circular (conic-gradient)
+  const plateDiv = document.getElementById('visual-plate');
+  if (plate.length === 0) {
+    plateDiv.style.background = '#334155';
+  } else {
+    plateDiv.style.background = `conic-gradient(
+      var(--carb) 0% ${pctC}%, 
+      var(--prot) ${pctC}% ${pctC + pctP}%, 
+      var(--lip) ${pctC + pctP}% 100%
+    )`;
+  }
+  
+  // Actualizar leyenda y centro
+  document.getElementById('plate-kcal').textContent = totals.kcal;
+  document.getElementById('leg-c').textContent = Math.round(pctC) + '%';
+  document.getElementById('leg-p').textContent = Math.round(pctP) + '%';
+  document.getElementById('leg-l').textContent = Math.round(pctL) + '%';
+  
+  // VEREDICTO INTELIGENTE
+  const verdict = document.getElementById('verdict');
+  verdict.className = 'verdict-box show';
+  
+  const kcalRatio = totals.kcal / targets.kcal;
+  
+  if (plate.length === 0) {
+    verdict.innerHTML = '🍽️ <b>Tu plato está vacío.</b> Empieza añadiendo proteínas y verduras.';
+    verdict.classList.add('warn');
+  } else if (kcalRatio > 1.3) {
+    verdict.innerHTML = `🔥 <b>¡Muy calórico!</b> Has superado tus necesidades diarias (${Math.round(kcalRatio*100)}% del GET). Cuidado con el exceso de lípidos y glúcidos.`;
+    verdict.classList.add('bad');
+  } else if (kcalRatio < 0.4) {
+    verdict.innerHTML = `⚠️ <b>Insuficiente.</b> Solo cubres el ${Math.round(kcalRatio*100)}% de tu energía diaria. Tu cuerpo se quedará sin combustible.`;
+    verdict.classList.add('warn');
+  } else if (pctP < 10) {
+    verdict.innerHTML = `⚠️ <b>Faltan proteínas.</b> Solo representan el ${Math.round(pctP)}% de tu plato. Añade pollo, huevo o legumbres para construir tus músculos.`;
+    verdict.classList.add('warn');
+  } else if (pctC > 75) {
+    verdict.innerHTML = `⚠️ <b>Exceso de glúcidos.</b> Representan el ${Math.round(pctC)}%. Equilibra con más proteínas y verduras para evitar picos de azúcar.`;
+    verdict.classList.add('warn');
+  } else if (kcalRatio >= 0.8 && kcalRatio <= 1.1 && pctP >= 15 && pctP <= 30) {
+    verdict.innerHTML = `✅ <b>¡Plato perfectamente equilibrado!</b> Cubres tu energía y tus macros están en las proporciones ideales.`;
+    verdict.classList.add('good');
+  } else {
+    verdict.innerHTML = `👍 <b>Buena base.</b> Sigue ajustando las porciones para acercarte a las barras objetivo.`;
+    verdict.classList.add('good');
+  }
+}
+
+// ============ EVENTOS ============
+document.querySelectorAll('.gender-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    profile.gender = btn.dataset.g;
+    calculate();
+  });
+});
+
+['weight', 'height', 'age'].forEach(id => {
+  document.getElementById(id).addEventListener('input', (e) => {
+    profile[id] = parseFloat(e.target.value) || 0;
+    calculate();
+  });
+});
+
+document.getElementById('activity').addEventListener('change', (e) => {
+  profile.activity = parseFloat(e.target.value);
+  calculate();
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFoods(btn.dataset.tab);
+  });
+});
+
+document.getElementById('reset-plate').addEventListener('click', () => {
+  plate = [];
+  updatePlate();
+});
+
+// ============ INICIO ============
+calculate();
+renderFoods();
+</script>
+</body>
+</html>

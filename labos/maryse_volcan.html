@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Volcán Químico</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-orange), var(--accent-red));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  
+  .lab-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+  
+  .controls { display: flex; flex-direction: column; gap: 10px; }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-orange); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-orange); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-top: 6px;
+    color: var(--accent-green);
+    font-size: 12px;
+  }
+
+  /* NOUVEAUX PANNEAUX EN BAS */
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 {
+    font-size: 14px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  
+  .material-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .material-item:last-child { border-bottom: none; }
+  .material-item .name {
+    font-weight: 700; color: var(--text-primary);
+    font-size: 13px; margin-bottom: 2px;
+  }
+  .material-item .formula {
+    font-family: monospace; color: var(--accent-orange);
+    font-size: 12px; margin-bottom: 4px;
+  }
+  .material-item .role {
+    font-size: 12px; color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .explanation p {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.7; margin-bottom: 12px;
+  }
+  .explanation p:last-child { margin-bottom: 0; }
+  .explanation b { color: var(--accent-green); }
+  .explanation .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🌋 Laboratorio: Volcán Químico</h1>
+  <div class="subtitle">Reacción: <b>Vinagre + Bicarbonato → CO₂ + Agua</b> · Ajusta las cantidades y observa la reacción.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Cantidad de <b>Vinagre</b> (mL) <span id="val-vinagre">50</span></label>
+          <input type="range" id="range-vinagre" min="10" max="100" step="5" value="50">
+        </div>
+        <div class="control-group">
+          <label>Cantidad de <b>Bicarbonato</b> (g) <span id="val-bicarbonato">10</span></label>
+          <input type="range" id="range-bicarbonato" min="1" max="30" step="1" value="10">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Reacción Química</div>
+        <div style="font-family: monospace; color: var(--accent-green);">
+          CH₃COOH + NaHCO₃ → CH₃COONa + H₂O + CO₂↑
+        </div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Reactivo Limitante</div>
+        <div id="step-limitante">Calculando...</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Producción de CO₂</div>
+        <div class="formula" id="step-co2">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Tipo de Reacción</div>
+        <div>Reacción <b>endotérmica</b> (absorbe calor, el vaso se enfría).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOUVEAUX PANNEAUX -->
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🧪 MATERIALES</h3>
+      
+      <div class="material-item">
+        <div class="name">Vinagre</div>
+        <div class="formula">CH₃COOH (ácido acético)</div>
+        <div class="role">Es el <b>ácido</b> de la reacción. Aporta los iones H⁺ que reaccionan con el bicarbonato.</div>
+      </div>
+      
+      <div class="material-item">
+        <div class="name">Bicarbonato de sodio</div>
+        <div class="formula">NaHCO₃</div>
+        <div class="role">Es la <b>base</b> de la reacción. Al contacto con el ácido, libera el gas CO₂.</div>
+      </div>
+      
+      <div class="material-item">
+        <div class="name">Dióxido de carbono (gas)</div>
+        <div class="formula">CO₂</div>
+        <div class="role">Es el gas que forma las <b>burbujas</b> que ves subir. Es el mismo gas que exhalamos al respirar.</div>
+      </div>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿QUÉ ESTÁ PASANDO?</h3>
+      
+      <p>Cuando mezclas <b>vinagre</b> con <b>bicarbonato</b>, ocurre una <b>reacción ácido-base</b>: el ácido del vinagre ataca al bicarbonato y lo descompone.</p>
+      
+      <p>Esta descomposición libera <b>dióxido de carbono (CO₂)</b>, un gas que no puede quedarse disuelto en el líquido y escapa hacia arriba en forma de burbujas. Por eso ves la "efervescencia".</p>
+      
+      <div class="highlight">
+        <b>¿Por qué el vaso se siente frío?</b><br>
+        Porque la reacción es <b>endotérmica</b>: para que los productos se formen, la reacción <b>absorbe calor</b> del ambiente. Ese calor sale del vaso y de tu mano, por eso lo sientes frío.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let vinagre = 50;
+let bicarbonato = 10;
+let bubbles = [];
+
+const sliderV = document.getElementById('range-vinagre');
+const sliderB = document.getElementById('range-bicarbonato');
+
+sliderV.addEventListener('input', () => { vinagre = parseInt(sliderV.value); update(); });
+sliderB.addEventListener('input', () => { bicarbonato = parseInt(sliderB.value); update(); });
+
+function createBubble() {
+  const intensity = (vinagre / 100) * (bicarbonato / 30);
+  return {
+    x: W/2 + (Math.random() - 0.5) * 180,
+    y: H - 50 - Math.random() * 100,
+    r: 2 + Math.random() * 4,
+    vy: -1 - Math.random() * 2 * intensity,
+    life: 1.0
+  };
+}
+
+function drawBeaker() {
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(W/2 - 100, H - 300);
+  ctx.lineTo(W/2 - 100, H - 50);
+  ctx.lineTo(W/2 + 100, H - 50);
+  ctx.lineTo(W/2 + 100, H - 300);
+  ctx.stroke();
+
+  const liquidHeight = 100 + (vinagre / 100) * 150;
+  const liquidY = H - 50 - liquidHeight;
+  
+  ctx.fillStyle = 'rgba(245, 245, 220, 0.3)';
+  ctx.fillRect(W/2 - 97, liquidY, 194, liquidHeight);
+  
+  const foamIntensity = (bicarbonato / 30) * (vinagre / 100);
+  const foamHeight = foamIntensity * 60;
+  if (foamHeight > 5) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.beginPath();
+    ctx.arc(W/2, liquidY, foamHeight, Math.PI, 0);
+    ctx.fill();
+  }
+}
+
+function drawBubbles() {
+  bubbles.forEach((b, i) => {
+    ctx.fillStyle = `rgba(255, 255, 255, ${b.life})`;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+    
+    b.y += b.vy;
+    b.life -= 0.01;
+    
+    if (b.life <= 0) bubbles.splice(i, 1);
+  });
+}
+
+function update() {
+  document.getElementById('val-vinagre').textContent = vinagre;
+  document.getElementById('val-bicarbonato').textContent = bicarbonato;
+  
+  const molesVinagre = (vinagre * 1) / 60;
+  const molesBicarbonato = bicarbonato / 84;
+  
+  let limitante = '';
+  let co2Moles = 0;
+  
+  if (molesVinagre < molesBicarbonato) {
+    limitante = 'Vinagre (se agota primero)';
+    co2Moles = molesVinagre;
+  } else {
+    limitante = 'Bicarbonato (se agota primero)';
+    co2Moles = molesBicarbonato;
+  }
+  
+  document.getElementById('step-limitante').innerHTML = 
+    `<b style="color: var(--accent-orange);">${limitante}</b><br>
+     <span style="font-size: 11px; color: var(--text-muted);">
+     Moles vinagre: ${molesVinagre.toFixed(3)} | Moles bicarbonato: ${molesBicarbonato.toFixed(3)}
+     </span>`;
+  
+  const co2Volume = co2Moles * 24;
+  document.getElementById('step-co2').textContent = 
+    `CO₂ producido: ${co2Volume.toFixed(2)} L`;
+  
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+  
+  drawBeaker();
+  
+  const intensity = (vinagre / 100) * (bicarbonato / 30);
+  if (Math.random() < intensity * 2) {
+    bubbles.push(createBubble());
+  }
+  
+  drawBubbles();
+  
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

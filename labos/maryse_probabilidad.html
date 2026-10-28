@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Probabilidad</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-blue); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-blue); }
+
+  .btn-row {
+    display: flex; gap: 8px;
+  }
+  .btn {
+    flex: 1; padding: 12px 20px; border-radius: 10px;
+    border: none; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); color: #fff; }
+  .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text-primary); border: 1px solid var(--border-card); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎲 Laboratorio: Probabilidad</h1>
+  <div class="subtitle">Lanza el dado muchas veces y observa cómo la frecuencia se acerca a la probabilidad teórica.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button class="btn btn-primary" id="lanzar1" onclick="lanzar(1)">🎲 Lanzar 1 vez</button>
+          <button class="btn btn-primary" id="lanzar100" onclick="lanzar(100)">🎲 Lanzar 100 veces</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="reset()">🔄 Reiniciar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Probabilidad teórica (cada número)</div>
+        <div class="formula">P(número) = 1 / 6 ≈ 0.1667 (16.67%)</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Total de lanzamientos</div>
+        <span class="result-big" id="total-lanz">0</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Frecuencia experimental</div>
+        <div id="frecuencia" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : ¿Se acerca a la teórica?</div>
+        <div id="conclusion" style="font-size:12px;color:var(--text-secondary);">Lanza el dado para empezar.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🎲 ¿QUÉ ESTAMOS HACIENDO?</h3>
+      <p>Lanzamos un dado de 6 caras. La <b>probabilidad teórica</b> de cada cara es 1/6 (16.67%). Pero en la práctica, los resultados pueden variar.</p>
+      <p>Cuando lanzas muchas veces, la <b>frecuencia experimental</b> (lo que realmente sale) se acerca a la <b>probabilidad teórica</b>. Esto se llama la <b>Ley de los Grandes Números</b>.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>La probabilidad se usa en seguros, encuestas, juegos de azar, medicina y hasta en inteligencia artificial.</p>
+      <p><b>Ejemplo real:</b> Los casinos calculan las probabilidades de cada juego para asegurar sus ganancias a largo plazo. A corto plazo, un jugador puede ganar. A largo plazo, la casa siempre gana.</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> Lanza muchas veces. Si lanzas 6 veces, no esperes exactamente un 1. Si lanzas 6000 veces, cada número saldrá cerca de 1000 veces.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let counts = [0, 0, 0, 0, 0, 0]; // Compteur pour chaque face (1-6)
+let total = 0;
+
+function lanzar(n) {
+  document.getElementById('lanzar1').disabled = true;
+  document.getElementById('lanzar100').disabled = true;
+  
+  let i = 0;
+  function step() {
+    if (i < n) {
+      const result = Math.floor(Math.random() * 6);
+      counts[result]++;
+      total++;
+      i++;
+      
+      update();
+      
+      if (n > 1) {
+        setTimeout(step, 10);
+      } else {
+        document.getElementById('lanzar1').disabled = false;
+        document.getElementById('lanzar100').disabled = false;
+      }
+    } else {
+      document.getElementById('lanzar1').disabled = false;
+      document.getElementById('lanzar100').disabled = false;
+    }
+  }
+  step();
+}
+
+function reset() {
+  counts = [0, 0, 0, 0, 0, 0];
+  total = 0;
+  update();
+}
+
+function drawChart() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const padding = 50;
+  const chartW = W - padding * 2;
+  const chartH = H - padding * 2;
+  const barW = chartW / 6 - 10;
+  const maxCount = Math.max(...counts, 1);
+
+  // Ligne de probabilité théorique
+  const theoValue = total / 6;
+  if (total > 0) {
+    const theoY = H - padding - (theoValue / maxCount) * chartH;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(padding, theoY);
+    ctx.lineTo(W - padding, theoY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Teórica: ${theoValue.toFixed(1)}`, padding + 4, theoY - 6);
+  }
+
+  // Barres
+  for (let i = 0; i < 6; i++) {
+    const x = padding + i * (chartW / 6) + (chartW / 6 - barW) / 2;
+    const barH = (counts[i] / maxCount) * chartH;
+    const y = H - padding - barH;
+
+    // Couleur selon si c'est au-dessus ou en-dessous de la théorie
+    let color = 'rgba(56,189,248,0.6)';
+    if (total > 0) {
+      const diff = Math.abs(counts[i] - theoValue);
+      if (diff < theoValue * 0.2) color = 'rgba(34,197,94,0.6)';
+      else if (diff > theoValue * 0.4) color = 'rgba(239,68,68,0.6)';
+    }
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, barW, barH);
+
+    // Nombre au-dessus de la barre
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(counts[i], x + barW / 2, y - 8);
+
+    // Numéro du dé en dessous
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(i + 1, x + barW / 2, H - padding + 22);
+  }
+}
+
+function update() {
+  document.getElementById('total-lanz').textContent = total;
+  
+  if (total === 0) {
+    document.getElementById('frecuencia').innerHTML = '—';
+    document.getElementById('conclusion').innerHTML = 'Lanza el dado para empezar.';
+  } else {
+    const frecs = counts.map(c => (c / total * 100).toFixed(1) + '%').join(' | ');
+    document.getElementById('frecuencia').innerHTML = 
+      `1: ${frecs.split(' | ')[0]} · 2: ${frecs.split(' | ')[1]} · 3: ${frecs.split(' | ')[2]}<br>` +
+      `4: ${frecs.split(' | ')[3]} · 5: ${frecs.split(' | ')[4]} · 6: ${frecs.split(' | ')[5]}`;
+    
+    // Conclusion
+    const theoPct = 100 / 6;
+    const deviations = counts.map(c => Math.abs(c/total*100 - theoPct));
+    const maxDev = Math.max(...deviations);
+    
+    if (total < 30) {
+      document.getElementById('conclusion').innerHTML = 
+        `<span style="color:var(--accent-orange);">Lanza más veces para ver la convergencia (llevas ${total} lanzamientos).</span>`;
+    } else if (maxDev < 5) {
+      document.getElementById('conclusion').innerHTML = 
+        `<span style="color:var(--accent-green);">¡Excelente! Las frecuencias están muy cerca de la teórica (16.67%).</span>`;
+    } else {
+      document.getElementById('conclusion').innerHTML = 
+        `<span style="color:var(--accent-blue);">Las frecuencias se están acercando. Sigue lanzando.</span>`;
+    }
+  }
+  
+  drawChart();
+}
+
+update();
+</script>
+</body>
+</html>

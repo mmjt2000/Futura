@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Medidas de Tendencia Central</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .controls label {
+    font-size: 12px; color: var(--text-secondary);
+    display: block; margin-bottom: 8px;
+  }
+  .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .input-row input {
+    flex: 1; padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-card);
+    border-radius: 8px; color: var(--text-primary);
+    font-size: 14px;
+  }
+  .input-row input:focus { outline: none; border-color: var(--accent-blue); }
+  .btn {
+    padding: 10px 20px; border-radius: 10px;
+    border: none; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent-blue), var(--accent-green)); color: #fff; }
+  .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text-primary); border: 1px solid var(--border-card); }
+  .btn-danger { background: rgba(239,68,68,0.2); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
+
+  .dataset {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 12px;
+  }
+  .data-chip {
+    padding: 6px 12px; background: rgba(56,189,248,0.15);
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    color: var(--accent-blue);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .data-chip button {
+    background: none; border: none; color: var(--accent-red);
+    cursor: pointer; font-size: 14px; font-weight: 700;
+  }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 20px; font-weight: 800;
+    color: var(--accent-blue);
+    display: block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📊 Laboratorio: Medidas de Tendencia Central</h1>
+  <div class="subtitle">Agrega datos y observa cómo se calculan la media, la mediana y la moda.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <label>Agregar un dato (0-100):</label>
+        <div class="input-row">
+          <input type="number" id="new-data" min="0" max="100" placeholder="Ej: 85">
+          <button class="btn btn-primary" onclick="addData()">Agregar</button>
+          <button class="btn btn-danger" onclick="clearData()">Limpiar</button>
+        </div>
+        <div class="dataset" id="dataset"></div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Datos ordenados</div>
+        <div class="formula" id="step-sorted">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Media (Promedio)</div>
+        <div id="step-media-formula" style="font-size: 12px; color: var(--text-secondary);">—</div>
+        <span class="result-big" id="step-media">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Mediana</div>
+        <div id="step-mediana-formula" style="font-size: 12px; color: var(--text-secondary);">—</div>
+        <span class="result-big" id="step-mediana">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Moda</div>
+        <span class="result-big" id="step-moda">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🧪 ¿QUÉ ES CADA MEDIDA?</h3>
+      
+      <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Media (Promedio)</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Suma de todos los datos dividida entre el número de datos. Es sensible a valores extremos.</div>
+      </div>
+      
+      <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Mediana</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">El valor del centro cuando los datos están ordenados. No le afectan los valores extremos.</div>
+      </div>
+      
+      <div style="padding: 10px 0;">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Moda</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">El valor que más se repite. Puede haber más de una moda o ninguna.</div>
+      </div>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>Estas medidas nos ayudan a <b>resumir</b> muchos datos en un solo número. Por ejemplo, si tienes las notas de toda tu clase, la media te dice el rendimiento típico.</p>
+      <p>Pero cada medida cuenta una historia diferente. Si hay un valor extremo (como un estudiante con 100 y el resto con 50), la <b>media</b> sube mucho, pero la <b>mediana</b> se mantiene cerca del 50.</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> Si los datos tienen valores extremos, usa la <b>mediana</b>. Si los datos son uniformes, usa la <b>media</b>.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+let data = [75, 82, 90, 68, 85, 78, 92];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+function addData() {
+  const input = document.getElementById('new-data');
+  const value = parseInt(input.value);
+  if (isNaN(value) || value < 0 || value > 100) return;
+  data.push(value);
+  input.value = '';
+  update();
+}
+
+function removeData(index) {
+  data.splice(index, 1);
+  update();
+}
+
+function clearData() {
+  data = [];
+  update();
+}
+
+function update() {
+  // Dataset chips
+  const datasetDiv = document.getElementById('dataset');
+  datasetDiv.innerHTML = data.map((d, i) => 
+    `<div class="data-chip">${d} <button onclick="removeData(${i})">×</button></div>`
+  ).join('');
+
+  if (data.length === 0) {
+    document.getElementById('step-sorted').textContent = '—';
+    document.getElementById('step-media').textContent = '—';
+    document.getElementById('step-mediana').textContent = '—';
+    document.getElementById('step-moda').textContent = '—';
+    drawChart();
+    return;
+  }
+
+  const sorted = [...data].sort((a, b) => a - b);
+
+  // PASO 1 : Sorted
+  document.getElementById('step-sorted').textContent = sorted.join(', ');
+
+  // PASO 2 : Media
+  const sum = data.reduce((a, b) => a + b, 0);
+  const media = sum / data.length;
+  document.getElementById('step-media-formula').innerHTML = 
+    `Media = (${data.join(' + ')}) / ${data.length} = ${sum} / ${data.length}`;
+  document.getElementById('step-media').textContent = media.toFixed(2);
+
+  // PASO 3 : Mediana
+  let mediana;
+  let medianaFormula;
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    mediana = (sorted[mid - 1] + sorted[mid]) / 2;
+    medianaFormula = `Mediana = (${sorted[mid - 1]} + ${sorted[mid]}) / 2`;
+  } else {
+    mediana = sorted[mid];
+    medianaFormula = `Mediana = valor central = ${sorted[mid]}`;
+  }
+  document.getElementById('step-mediana-formula').textContent = medianaFormula;
+  document.getElementById('step-mediana').textContent = mediana;
+
+  // PASO 4 : Moda
+  const counts = {};
+  data.forEach(d => counts[d] = (counts[d] || 0) + 1);
+  const maxCount = Math.max(...Object.values(counts));
+  const modas = Object.keys(counts).filter(k => counts[k] === maxCount).map(Number);
+  let modaText;
+  if (maxCount === 1) {
+    modaText = 'No hay moda (todos los valores aparecen una vez)';
+  } else {
+    modaText = modas.join(', ') + ` (aparece ${maxCount} veces)`;
+  }
+  document.getElementById('step-moda').textContent = modaText;
+
+  drawChart(sorted, media, mediana);
+}
+
+function drawChart(sorted, media, mediana) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!sorted || sorted.length === 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Agrega datos para ver el gráfico', W/2, H/2);
+    return;
+  }
+
+  const padding = 40;
+  const chartW = W - padding * 2;
+  const chartH = H - padding * 2;
+  const maxVal = Math.max(...sorted, 100);
+  const barW = Math.min(40, chartW / sorted.length - 8);
+
+  // Barres
+  sorted.forEach((val, i) => {
+    const x = padding + i * (chartW / sorted.length) + (chartW / sorted.length - barW) / 2;
+    const barH = (val / maxVal) * chartH;
+    const y = H - padding - barH;
+    
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+    ctx.fillRect(x, y, barW, barH);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(val, x + barW / 2, y - 6);
+  });
+
+  // Ligne média
+  const mediaY = H - padding - (media / maxVal) * chartH;
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(padding, mediaY);
+  ctx.lineTo(W - padding, mediaY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Media: ${media.toFixed(2)}`, padding + 4, mediaY - 6);
+
+  // Ligne médiane
+  const medianaY = H - padding - (mediana / maxVal) * chartH;
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(padding, medianaY);
+  ctx.lineTo(W - padding, medianaY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  ctx.fillStyle = '#22c55e';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Mediana: ${mediana}`, padding + 4, medianaY - 6);
+}
+
+// Lancement
+update();
+</script>
+</body>
+</html>

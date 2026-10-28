@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e27">
+<title>FUTURA — Parcours</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="stylesheet" href="/static/theme.css">
+<style>
+  .app-container { max-width: 640px; }
+  .header .title { flex: 1; font-size: 15px; font-weight: 700; }
+  .progress-pill {
+    font-size: 11px; color: var(--accent-orange);
+    padding: 4px 10px; border-radius: 12px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+  .global-progress { height: 4px; margin-bottom: 24px; }
+
+  .etape {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+  .etape.locked { opacity: 0.4; pointer-events: none; }
+  .etape.active { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 20px rgba(56, 189, 248, 0.15); }
+  .etape.completed { border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.05); }
+
+  .etape-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .etape-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--accent-orange);
+  }
+  .etape.completed .etape-num { background: var(--accent-green); color: #fff; }
+  .etape-title { flex: 1; font-size: 14px; font-weight: 700; text-align: left; }
+  .etape-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; background: var(--bg-elevated); color: var(--text-secondary); }
+
+  .contexte-titre {
+    font-size: 16px; font-weight: 800; margin-bottom: 8px;
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .contexte-texte { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 12px; }
+  .contexte-exemple {
+    font-size: 12px; padding: 10px 14px;
+    background: rgba(56, 189, 248, 0.08);
+    border-left: 3px solid var(--accent-blue);
+    border-radius: 8px; color: var(--text-secondary); margin-bottom: 12px;
+  }
+  .contexte-exemple b { color: var(--accent-blue); }
+
+  .khan-box { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-card); border-radius: 12px; margin-bottom: 12px; }
+  .khan-icon { font-size: 28px; }
+  .khan-info { flex: 1; }
+  .khan-skill { font-size: 13px; font-weight: 600; }
+  .khan-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .q-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--accent-purple); margin-bottom: 4px; }
+  .q-text { font-size: 13px; line-height: 1.5; margin-bottom: 8px; }
+  .q-block { margin-bottom: 16px; }
+  textarea, .exercice input {
+    width: 100%; padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 10px; color: var(--text-primary);
+    font-size: 12px; font-family: inherit; resize: vertical;
+  }
+  textarea { min-height: 60px; }
+  textarea:focus, .exercice input:focus { outline: none; border-color: var(--accent-purple); }
+
+  .exercice { padding: 14px; margin-bottom: 12px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; transition: all 0.3s; }
+  .exercice.locked { opacity: 0.3; pointer-events: none; }
+  .exercice-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .niveau { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+  .niveau-1 { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+  .niveau-2 { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+  .niveau-3 { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+  .niveau-4 { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+  .exercice-process { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .exercice-question { font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
+  .exercice input { margin-bottom: 8px; font-size: 13px; }
+  .feedback { font-size: 12px; padding: 8px 12px; border-radius: 8px; margin-top: 8px; display: none; }
+  .feedback.correct { background: rgba(34, 197, 94, 0.15); border-left: 3px solid var(--accent-green); color: var(--accent-green); display: block; }
+  .feedback.incorrect { background: rgba(239, 68, 68, 0.15); border-left: 3px solid var(--accent-red); color: var(--accent-red); display: block; }
+
+  .completion {
+    text-align: center; padding: 24px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(56, 189, 248, 0.15));
+    border-radius: 18px; border: 1px solid rgba(34, 197, 94, 0.3); margin-top: 20px;
+  }
+  .completion h2 { font-size: 20px; margin-bottom: 8px; color: var(--accent-green); }
+  .completion p { font-size: 13px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <div class="header">
+    <a href="/" class="back-btn">← Salir</a>
+    <div class="title" id="parcours-title">Cargando…</div>
+    <div class="progress-pill" id="progress-pill">0/6</div>
+  </div>
+
+  <div class="bar global-progress"><div class="bar-fill" id="global-progress-fill"></div></div>
+
+  <div class="etape" id="etape-1">
+    <div class="etape-header">
+      <div class="etape-num">1</div>
+      <div class="etape-title">🌍 Contexte Réel</div>
+      <div class="etape-badge" id="badge-1">À découvrir</div>
+    </div>
+    <div id="contexte-content"></div>
+  </div>
+
+  <div class="etape locked" id="etape-2">
+    <div class="etape-header">
+      <div class="etape-num">2</div>
+      <div class="etape-title">🎓 Khan Academy</div>
+      <div class="etape-badge" id="badge-2">Verrouillé</div>
+    </div>
+    <div class="khan-box">
+      <div class="khan-icon">📺</div>
+      <div class="khan-info">
+        <div class="khan-skill" id="khan-skill">—</div>
+        <div class="khan-meta" id="khan-meta">—</div>
+      </div>
+    </div>
+    <a href="#" id="khan-link" target="_blank" rel="noopener" class="btn btn-primary">Abrir Khan Academy →</a>
+    <button class="btn btn-success" style="margin-left:8px;" onclick="terminerEtape(2)">✓ Terminé</button>
+  </div>
+
+  <div class="etape locked" id="etape-3">
+    <div class="etape-header">
+      <div class="etape-num">3</div>
+      <div class="etape-title">🧪 Laboratoire</div>
+      <div class="etape-badge" id="badge-3">Verrouillé</div>
+    </div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;" id="labo-desc">—</p>
+    <button class="btn btn-primary" id="labo-btn">Abrir el laboratorio →</button>
+    <button class="btn btn-success" style="margin-left:8px;" onclick="terminerEtape(3)">✓ Terminé</button>
+  </div>
+
+  <div class="etape locked" id="etape-4">
+    <div class="etape-header">
+      <div class="etape-num">4</div>
+      <div class="etape-title">📓 Carnet PISA</div>
+      <div class="etape-badge" id="badge-4">Verrouillé</div>
+    </div>
+    <div id="carnet-content"></div>
+    <button class="btn btn-primary" style="margin-top:12px;" id="carnet-save">✓ Enregistrar mis respuestas</button>
+  </div>
+
+  <div class="etape locked" id="etape-5">
+    <div class="etape-header">
+      <div class="etape-num">5</div>
+      <div class="etape-title">🎯 Exercices PISA</div>
+      <div class="etape-badge" id="badge-5">Verrouillé</div>
+    </div>
+    <div id="exercices-content"></div>
+  </div>
+
+  <div class="etape locked" id="etape-6">
+    <div class="etape-header">
+      <div class="etape-num">6</div>
+      <div class="etape-title">🧠 Métacognition</div>
+      <div class="etape-badge" id="badge-6">Verrouillé</div>
+    </div>
+    <div class="q-block">
+      <div class="q-text">¿Qué fue fácil para ti en este parcours?</div>
+      <textarea id="meta-facil"></textarea>
+    </div>
+    <div class="q-block">
+      <div class="q-text">¿Qué fue difícil?</div>
+      <textarea id="meta-dificil"></textarea>
+    </div>
+    <div class="q-block">
+      <div class="q-text">¿Qué harías diferente la próxima vez?</div>
+      <textarea id="meta-diferente"></textarea>
+    </div>
+    <button class="btn btn-success" id="meta-save">🎉 Terminar el parcours</button>
+  </div>
+
+  <div id="completion-message" style="display:none;"></div>
+
+</div>
+
+<script src="/static/app.js"></script>
+<script>
+const PARCOURS_ID = new URLSearchParams(location.search).get("id") || "maryse_ecuaciones_cuadraticas";
+
+let user = null;
+let parcours = null;
+let state = { etapes: new Set(), carnet: {}, reussis: [], completed: false };
+
+/* ---------- rendu ---------- */
+function render() {
+  document.getElementById("parcours-title").textContent = parcours.title;
+
+  document.getElementById("contexte-content").innerHTML = `
+    <div class="contexte-titre">${Futura.escapeHtml(parcours.contexte.titre)}</div>
+    <div class="contexte-texte">${Futura.escapeHtml(parcours.contexte.texte)}</div>
+    <div class="contexte-exemple"><b>Ejemplo concreto:</b> ${Futura.escapeHtml(parcours.contexte.exemple)}</div>
+    <div class="q-block">
+      <div class="q-label">REFLEXIÓN</div>
+      <div class="q-text">${Futura.escapeHtml(parcours.contexte.question_reflexion)}</div>
+      <textarea id="ctx-reflexion">${Futura.escapeHtml(state.carnet.reflexion || "")}</textarea>
+    </div>
+    <button class="btn btn-primary" onclick="terminerEtape(1)">✓ Continuar → Khan Academy</button>
+  `;
+
+  document.getElementById("khan-skill").textContent = parcours.khan.skill;
+  document.getElementById("khan-meta").textContent = `⏱ ${parcours.khan.estimated_minutes} min · Video + ejercicios`;
+  document.getElementById("khan-link").href = parcours.khan.link;
+  document.getElementById("labo-desc").textContent = parcours.labo.description;
+
+  renderCarnet();
+  renderExercices();
+  renderLocks();
+}
+
+function renderCarnet() {
+  const container = document.getElementById("carnet-content");
+  container.innerHTML = parcours.carnet.map((q, i) => `
+    <div class="q-block">
+      <div class="q-label">${Futura.escapeHtml(q.process).toUpperCase()} · Nivel ${i + 1}</div>
+      <div class="q-text">${Futura.escapeHtml(q.question)}</div>
+      <textarea id="carnet-${Futura.escapeHtml(q.process)}">${Futura.escapeHtml(state.carnet[q.process] || "")}</textarea>
+    </div>
+  `).join("");
+}
+
+function renderExercices() {
+  const container = document.getElementById("exercices-content");
+  container.innerHTML = parcours.exercises.map((ex, i) => {
+    const done = state.reussis.includes(ex.id);
+    return `
+      <div class="exercice" id="exercice-${i}">
+        <div class="exercice-header">
+          <span class="niveau niveau-${ex.level}">Nivel ${ex.level}</span>
+          <span class="exercice-process">${Futura.escapeHtml(ex.process)}</span>
+        </div>
+        <div class="exercice-question">${Futura.escapeHtml(ex.question)}</div>
+        <input id="input-${i}" placeholder="Tu respuesta…" ${done ? "disabled" : ""}>
+        <button class="btn btn-primary btn-sm" onclick="verifierExercice(${i})" ${done ? "disabled" : ""}>Verificar</button>
+        <div class="feedback ${done ? "correct" : ""}" id="feedback-${i}">${done ? "✅ ¡Correcto!" : ""}</div>
+      </div>`;
+  }).join("");
+}
+
+function renderLocks() {
+  const done = state.etapes;
+  let firstOpen = 1;
+  for (let n = 1; n <= 6; n++) {
+    if (done.has(n)) firstOpen = Math.max(firstOpen, n + 1);
+  }
+
+  for (let n = 1; n <= 6; n++) {
+    const el = document.getElementById(`etape-${n}`);
+    const badge = document.getElementById(`badge-${n}`);
+    el.classList.remove("locked", "active", "completed");
+    if (done.has(n)) {
+      el.classList.add("completed");
+      badge.textContent = "✓ Terminé";
+    } else if (n === firstOpen) {
+      el.classList.add("active");
+      badge.textContent = "En cours";
+    } else {
+      el.classList.add("locked");
+      badge.textContent = "Verrouillé";
+    }
+  }
+
+  // Les exercices se débloquent un par un.
+  parcours.exercises.forEach((ex, i) => {
+    const el = document.getElementById(`exercice-${i}`);
+    if (!el) return;
+    const done = state.reussis.includes(ex.id);
+    const unlocked = i === 0 || state.reussis.includes(parcours.exercises[i - 1].id);
+    el.classList.toggle("locked", !done && !unlocked);
+  });
+
+  const count = [...done].length;
+  document.getElementById("progress-pill").textContent = `${count}/6`;
+  document.getElementById("global-progress-fill").style.width = `${(count / 6) * 100}%`;
+
+  if (state.completed) {
+    const box = document.getElementById("completion-message");
+    box.style.display = "block";
+    box.innerHTML = `
+      <div class="completion">
+        <h2>🎉 ¡Parcours terminado!</h2>
+        <p>Has completado ${Futura.escapeHtml(parcours.title)}.</p>
+        <p style="margin-top:8px;font-size:12px;">Tu carnet y tus respuestas quedan guardados.</p>
+        <a href="/static/laboratorio.html" class="btn btn-primary" style="margin-top:14px;">Ver mi laboratorio →</a>
+      </div>`;
+  }
+}
+
+/* ---------- actions ---------- */
+async function terminerEtape(num) {
+  try {
+    const result = await Futura.api(`/api/parcours/${PARCOURS_ID}/etape`, {
+      method: "PATCH",
+      body: JSON.stringify({ user_id: user.id, etape: num }),
+    });
+    result.etapes.forEach((n) => state.etapes.add(n));
+    renderLocks();
+  } catch (error) {
+    alert("No se pudo guardar: " + error.message);
+  }
+}
+
+async function sauvegarderCarnet() {
+  const reponses = {};
+  parcours.carnet.forEach((q) => {
+    const field = document.getElementById(`carnet-${q.process}`);
+    if (field) reponses[q.process] = field.value.trim();
+  });
+  const reflexion = document.getElementById("ctx-reflexion");
+  if (reflexion) reponses.reflexion = reflexion.value.trim();
+
+  if (!Object.values(reponses).some(Boolean)) {
+    alert("Escribe al menos una respuesta antes de guardar.");
+    return;
+  }
+
+  try {
+    const result = await Futura.api(`/api/parcours/${PARCOURS_ID}/carnet`, {
+      method: "PATCH",
+      body: JSON.stringify({ user_id: user.id, reponses }),
+    });
+    state.carnet = { ...state.carnet, ...reponses };
+    result.etapes.forEach((n) => state.etapes.add(n));
+    renderLocks();
+    if (!result.etapes.includes(4)) {
+      alert("Respuestas guardadas. Completa las 4 preguntas del carnet para avanzar.");
+    }
+  } catch (error) {
+    alert("No se pudo guardar: " + error.message);
+  }
+}
+
+async function verifierExercice(index) {
+  const ex = parcours.exercises[index];
+  const input = document.getElementById(`input-${index}`);
+  const feedback = document.getElementById(`feedback-${index}`);
+  const answer = input.value.trim();
+
+  if (!answer) return;
+
+  try {
+    const result = await Futura.api(`/api/parcours/${PARCOURS_ID}/exercice`, {
+      method: "POST",
+      body: JSON.stringify({ user_id: user.id, exercise_id: ex.id, response: answer }),
+    });
+
+    if (result.correct) {
+      state.reussis = result.exercices_reussis;
+      feedback.className = "feedback correct";
+      feedback.textContent = "✅ ¡Correcto!";
+      input.disabled = true;
+      result.etapes.forEach((n) => state.etapes.add(n));
+      renderLocks();
+    } else {
+      feedback.className = "feedback incorrect";
+      feedback.textContent = result.expected_answer
+        ? `❌ Todavía no. Respuesta esperada: ${result.expected_answer}`
+        : "❌ Inténtalo de nuevo.";
+    }
+  } catch (error) {
+    feedback.className = "feedback incorrect";
+    feedback.textContent = "⚠️ " + error.message;
+  }
+}
+
+async function terminerParcours() {
+  const meta = {
+    facil: document.getElementById("meta-facil").value.trim(),
+    dificil: document.getElementById("meta-dificil").value.trim(),
+    diferente: document.getElementById("meta-diferente").value.trim(),
+  };
+
+  try {
+    const result = await Futura.api(`/api/parcours/${PARCOURS_ID}/complete`, {
+      method: "POST",
+      body: JSON.stringify({ user_id: user.id, metacognition: meta }),
+    });
+    state.completed = true;
+    state.etapes.add(6);
+    renderLocks();
+
+    const box = document.getElementById("completion-message");
+    box.style.display = "block";
+    box.innerHTML = `
+      <div class="completion">
+        <h2>🎉 ¡Parcours terminado!</h2>
+        <p>Has completado ${Futura.escapeHtml(parcours.title)}. +${result.xp_earned} XP</p>
+        <p style="margin-top:8px;font-size:12px;">Total: ${result.total_xp} XP</p>
+        <a href="/" class="btn btn-primary" style="margin-top:14px;">Volver al inicio →</a>
+      </div>`;
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (error) {
+    alert("No se pudo terminar: " + error.message);
+  }
+}
+
+/* ---------- démarrage ---------- */
+async function boot() {
+  Futura.initTheme();
+  Futura.mountThemeSwitch();
+
+  user = await Futura.currentUser();
+  parcours = await Futura.api(`/api/parcours/${PARCOURS_ID}`);
+  const progress = await Futura.api(`/api/parcours/${PARCOURS_ID}/progress?user_id=${user.id}`);
+
+  state.etapes = new Set(progress.etapes || []);
+  state.carnet = progress.carnet || {};
+  state.reussis = progress.exercices_reussis || [];
+  state.completed = Boolean(progress.completed);
+
+  if (state.completed) {
+    // Le parcours est fini : on pré-remplit la métacognition sauvegardée.
+    const meta = progress.metacognition || {};
+    document.getElementById("meta-facil").value = meta.facil || "";
+    document.getElementById("meta-dificil").value = meta.dificil || "";
+    document.getElementById("meta-diferente").value = meta.diferente || "";
+  }
+
+  render();
+
+  document.getElementById("carnet-save").addEventListener("click", sauvegarderCarnet);
+  document.getElementById("meta-save").addEventListener("click", terminerParcours);
+  document.getElementById("labo-btn").addEventListener("click", () => {
+    const path = parcours.labo.file.startsWith("/") ? parcours.labo.file : "/" + parcours.labo.file;
+    window.open(path, "_blank");
+  });
+}
+
+boot().catch((error) => {
+  document.querySelector(".app-container").innerHTML = `
+    <div class="empty">
+      <h2 style="color:var(--accent-red);margin-bottom:12px;">❌ ${Futura.escapeHtml(error.message)}</h2>
+      <p>Vérifie que le serveur FastAPI est lancé.</p>
+      <a href="/" class="btn btn-primary" style="margin-top:16px;">← Retour</a>
+    </div>`;
+});
+</script>
+</body>
+</html>

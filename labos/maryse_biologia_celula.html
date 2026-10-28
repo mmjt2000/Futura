@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FUTURA — Laboratorio: Diferenciación Celular</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at center, #050a14 0%, #000 100%);
+    color: #fff;
+  }
+  #canvas-container { position: fixed; inset: 0; z-index: 1; }
+  canvas { display: block; touch-action: none; }
+
+  .ui-panel {
+    position: fixed; z-index: 10;
+    background: rgba(5, 10, 20, 0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 200, 0.15);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  }
+
+  #home-screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    background: radial-gradient(ellipse at center, #050a14 0%, #000 100%);
+  }
+  #home-screen.hidden { display: none; }
+  #home-screen h1 {
+    font-size: 42px; font-weight: 800;
+    background: linear-gradient(90deg, #00ffc8, #00d2ff, #8338ec);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px; text-align: center;
+  }
+  #home-screen .subtitle { font-size: 14px; color: #8899aa; margin-bottom: 24px; text-align: center; }
+  .mode-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px; max-width: 560px; width: 100%;
+  }
+  .mode-card {
+    padding: 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0, 255, 200, 0.1);
+    cursor: pointer; transition: all 0.3s; text-align: left;
+  }
+  .mode-card:hover { background: rgba(0, 255, 200, 0.08); transform: translateY(-3px); border-color: rgba(0, 255, 200, 0.5); box-shadow: 0 10px 30px rgba(0, 255, 200, 0.1); }
+  .mode-card .emoji { font-size: 36px; margin-bottom: 8px; display: block; }
+  .mode-card .title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .mode-card .desc { font-size: 11px; color: #8899aa; line-height: 1.4; }
+
+  #lab-ui { display: none; }
+  #lab-ui.active { display: block; }
+
+  #top-bar { top: 12px; left: 12px; right: 12px; display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+  .mode-title { flex: 1; font-size: 13px; font-weight: 600; }
+  .status-indicator {
+    font-size: 11px; color: #00ffc8;
+    padding: 4px 10px; border-radius: 12px;
+    background: rgba(0, 255, 200, 0.1);
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    font-family: "SF Mono", Consolas, monospace;
+  }
+
+  #controls-panel {
+    top: 70px; left: 12px;
+    width: 300px; max-height: calc(100vh - 90px);
+    overflow-y: auto;
+  }
+  #controls-panel h3 { font-size: 12px; color: #00ffc8; margin-bottom: 12px; letter-spacing: 1px; }
+  
+  .diff-btn {
+    width: 100%; padding: 12px; margin-bottom: 8px;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    color: white; cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 12px;
+    transition: all 0.2s;
+  }
+  .diff-btn:hover { background: rgba(0, 255, 200, 0.1); border-color: rgba(0, 255, 200, 0.4); }
+  .diff-btn.active { background: rgba(0, 255, 200, 0.15); border-color: #00ffc8; box-shadow: 0 0 15px rgba(0, 255, 200, 0.2); }
+  .diff-btn .icon { font-size: 24px; }
+  .diff-btn .text { display: flex; flex-direction: column; }
+  .diff-btn .name { font-size: 13px; font-weight: 600; }
+  .diff-btn .factor { font-size: 10px; color: #8899aa; }
+
+  .gene-panel {
+    margin-top: 16px; padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px; border: 1px solid rgba(131, 56, 236, 0.3);
+  }
+  .gene-panel h4 { font-size: 11px; color: #8338ec; margin-bottom: 8px; letter-spacing: 1px; }
+  .gene-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; font-size: 11px; color: #c8d0e0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .gene-row:last-child { border-bottom: none; }
+  .gene-status {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  }
+  .gene-status.on { background: rgba(0, 255, 200, 0.2); color: #00ffc8; }
+  .gene-status.off { background: rgba(255, 0, 110, 0.2); color: #ff006e; }
+
+  .info-box {
+    padding: 10px 12px; margin-top: 12px;
+    background: rgba(0, 210, 255, 0.08);
+    border-left: 3px solid #00d2ff;
+    border-radius: 6px;
+    font-size: 11px; line-height: 1.5;
+    color: #a8d8ea;
+  }
+  .info-box b { color: #00d2ff; }
+
+  .action-row { display: flex; gap: 8px; margin-top: 12px; }
+  .btn {
+    flex: 1; padding: 10px; border: none; border-radius: 10px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: linear-gradient(135deg, #00ffc8, #00d2ff); color: #000; }
+  .btn-secondary { background: rgba(255,255,255,0.08); color: #c8d0e0; border: 1px solid rgba(255,255,255,0.15); }
+  .btn:active { transform: scale(0.96); }
+
+  #observation-panel {
+    bottom: 12px; left: 12px; right: 12px;
+    max-width: 600px; margin: 0 auto;
+    padding: 14px 18px;
+  }
+  #observation-panel h3 { font-size: 12px; color: #ffbe0b; margin-bottom: 8px; letter-spacing: 1px; }
+  .observation-text { font-size: 13px; line-height: 1.6; color: #d0d8e8; }
+  .observation-text b { color: #ffbe0b; }
+
+  #quiz-modal {
+    position: fixed; inset: 0; z-index: 60;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+  }
+  #quiz-modal.visible { display: flex; }
+  .quiz-box {
+    background: rgba(5, 10, 20, 0.95);
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    border-radius: 20px; padding: 24px;
+    max-width: 560px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+  }
+  .quiz-box h2 {
+    font-size: 18px; margin-bottom: 6px;
+    background: linear-gradient(90deg, #ffbe0b, #00ffc8);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .quiz-box .quiz-subtitle { font-size: 12px; color: #8899aa; margin-bottom: 16px; }
+  .quiz-progress { display: flex; justify-content: space-between; padding: 8px 12px; margin-bottom: 16px; background: rgba(255,255,255,0.04); border-radius: 10px; font-size: 12px; }
+  .quiz-progress .q-num { color: #ffbe0b; font-weight: 600; }
+  .quiz-progress .q-score { color: #00ffc8; font-weight: 600; }
+  .quiz-question { font-size: 14px; line-height: 1.6; margin-bottom: 16px; color: #fff; }
+  .quiz-choices { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-choice {
+    padding: 12px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; font-size: 13px; line-height: 1.5;
+    color: #d0d8e8; text-align: left;
+  }
+  .quiz-choice:hover { background: rgba(0, 255, 200, 0.1); border-color: rgba(0, 255, 200, 0.3); }
+  .quiz-choice.correct { background: rgba(0, 204, 0, 0.15); border-color: #00cc00; color: #90ee90; }
+  .quiz-choice.wrong { background: rgba(255, 0, 110, 0.15); border-color: #ff006e; color: #ff8fa3; }
+  .quiz-choice.disabled { pointer-events: none; opacity: 0.7; }
+  .quiz-feedback { margin-top: 12px; padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: rgba(0, 204, 0, 0.1); border-left: 3px solid #00cc00; color: #90ee90; }
+  .quiz-feedback.wrong-fb { background: rgba(255, 0, 110, 0.1); border-left: 3px solid #ff006e; color: #ff8fa3; }
+  .quiz-next-btn { margin-top: 14px; width: 100%; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #00ffc8, #00d2ff); color: #000; border: none; font-weight: 600; cursor: pointer; font-size: 13px; display: none; }
+  .quiz-next-btn.show { display: block; }
+  .quiz-result { text-align: center; padding: 20px; }
+  .quiz-result .score-big { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #ffbe0b, #00ffc8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0; }
+  .quiz-result .score-label { font-size: 14px; color: #8899aa; margin-bottom: 16px; }
+  .quiz-result .score-msg { font-size: 14px; line-height: 1.6; color: #d0d8e8; margin-bottom: 20px; }
+  .quiz-close-btn { padding: 12px 24px; border-radius: 10px; background: linear-gradient(135deg, #8338ec, #ff006e); color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
+
+  #pisa-panel {
+    bottom: 12px; left: 12px; right: 12px;
+    max-width: 560px; margin: 0 auto;
+    display: none; max-height: 70vh; overflow-y: auto;
+  }
+  #pisa-panel.visible { display: block; }
+  #pisa-panel h2 { font-size: 14px; color: #00ffc8; margin-bottom: 10px; }
+  #pisa-panel p { font-size: 13px; line-height: 1.6; color: #d0d8e8; margin-bottom: 10px; }
+  #pisa-panel .answer {
+    background: rgba(0, 255, 200, 0.08);
+    border-left: 3px solid #00ffc8;
+    padding: 10px 12px; border-radius: 6px;
+    font-size: 12px; margin: 8px 0; color: #a8e8d8;
+  }
+  .close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #888; font-size: 20px; cursor: pointer; }
+
+  .feedback {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px 28px; border-radius: 14px;
+    font-size: 15px; font-weight: 600;
+    z-index: 30; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feedback.show { opacity: 1; }
+  .feedback.success { background: rgba(0, 255, 200, 0.9); color: #000; box-shadow: 0 0 30px rgba(0, 255, 200, 0.5); }
+  .feedback.info { background: rgba(0, 210, 255, 0.9); color: #000; box-shadow: 0 0 30px rgba(0, 210, 255, 0.5); }
+</style>
+</head>
+<body>
+
+<!-- ÉCRAN D'ACCUEIL -->
+<div id="home-screen">
+  <h1>🧬 CytoVR</h1>
+  <div class="subtitle">Laboratorio de Diferenciación Celular en Realidad Virtual</div>
+  
+  <div class="mode-grid">
+    <div class="mode-card" data-mode="observe">
+      <span class="emoji">🔬</span>
+      <div class="title">Observar Célula Madre</div>
+      <div class="desc">Explora la célula madre pluripotente en 3D</div>
+    </div>
+    <div class="mode-card" data-mode="differentiate">
+      <span class="emoji">🧬</span>
+      <div class="title">Diferenciación</div>
+      <div class="desc">Aplica factores de crecimiento y mira la transformación</div>
+    </div>
+    <div class="mode-card" data-mode="genes">
+      <span class="emoji">🧬</span>
+      <div class="title">Expresión Génica</div>
+      <div class="desc">Entra en el núcleo y observa el ADN activarse</div>
+    </div>
+    <div class="mode-card" data-mode="therapy">
+      <span class="emoji">💊</span>
+      <div class="title">Terapia Celular</div>
+      <div class="desc">Repara un tejido dañado eligiendo la célula correcta</div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERFACE LABO -->
+<div id="lab-ui">
+  <div id="top-bar" class="ui-panel">
+    <button class="back-btn" id="back-btn">← Salir</button>
+    <div class="mode-title" id="mode-title">Modo</div>
+    <div class="status-indicator" id="status-indicator">🟢 Célula Madre</div>
+  </div>
+
+  <div id="controls-panel" class="ui-panel">
+    <h3> FACTORES DE CRECIMIENTO</h3>
+    <button class="diff-btn active" data-cell="stem">
+      <span class="icon">🔬</span>
+      <span class="text"><span class="name">Célula Madre</span><span class="factor">Sin factores (Pluripotente)</span></span>
+    </button>
+    <button class="diff-btn" data-cell="neuron">
+      <span class="icon">🧠</span>
+      <span class="text"><span class="name">Neurona</span><span class="factor">Factor: NGF (Nerve Growth Factor)</span></span>
+    </button>
+    <button class="diff-btn" data-cell="muscle">
+      <span class="icon">💪</span>
+      <span class="text"><span class="name">Célula Muscular</span><span class="factor">Factor: Miogenina + IGF-1</span></span>
+    </button>
+    <button class="diff-btn" data-cell="skin">
+      <span class="icon">🛡️</span>
+      <span class="text"><span class="name">Célula de Piel</span><span class="factor">Factor: EGF (Epidermal Growth)</span></span>
+    </button>
+    <button class="diff-btn" data-cell="heart">
+      <span class="icon">❤️</span>
+      <span class="text"><span class="name">Cardiomiocito</span><span class="factor">Factor: BMP2 + FGF</span></span>
+    </button>
+
+    <div class="gene-panel">
+      <h4>🧬 EXPRESIÓN GÉNICA (ADN)</h4>
+      <div id="gene-list"></div>
+    </div>
+
+    <div class="info-box" id="info-box">
+      <b>Célula Madre:</b> Tiene el potencial de convertirse en cualquier célula. Todos sus genes de diferenciación están "en espera".
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" id="reset-btn">🔄 Reiniciar</button>
+      <button class="btn btn-primary" id="quiz-btn">🎯 Quiz PISA</button>
+    </div>
+  </div>
+
+  <div id="observation-panel" class="ui-panel">
+    <h3>💡 LO QUE OBSERVAS</h3>
+    <div class="observation-text" id="observation-text">
+      Selecciona un factor de crecimiento para iniciar la diferenciación celular.
+    </div>
+  </div>
+</div>
+
+<div id="canvas-container"></div>
+<div class="feedback" id="feedback"></div>
+
+<!-- QUIZ MODAL -->
+<div id="quiz-modal">
+  <div class="quiz-box">
+    <h2>🧠 Quiz — Diferenciación Celular</h2>
+    <div class="quiz-subtitle">Demuestra lo que aprendiste</div>
+    <div id="quiz-content"></div>
+  </div>
+</div>
+
+<!-- PISA PANEL -->
+<div id="pisa-panel" class="ui-panel">
+  <button class="close-btn" id="close-pisa">×</button>
+  <div id="pisa-content"></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============ SCENE SETUP ============
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2, 6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 0, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+keyLight.position.set(5, 8, 5);
+scene.add(keyLight);
+const glowLight1 = new THREE.PointLight(0x00ffc8, 2, 15);
+glowLight1.position.set(-3, 3, 3);
+scene.add(glowLight1);
+const glowLight2 = new THREE.PointLight(0x8338ec, 2, 15);
+glowLight2.position.set(3, 3, -3);
+scene.add(glowLight2);
+
+// Sol (Placa de Petri)
+const dishGeo = new THREE.CylinderGeometry(4, 4, 0.1, 64);
+const dishMat = new THREE.MeshPhysicalMaterial({ color: 0x111122, roughness: 0.1, metalness: 0.5, transparent: true, opacity: 0.8 });
+const dish = new THREE.Mesh(dishGeo, dishMat);
+dish.position.y = -2;
+scene.add(dish);
+
+// ============ PARAMÈTRES ============
+const params = {
+  currentCell: 'stem',
+  mode: 'observe',
+  time: 0
+};
+
+// ============ CRÉATION DES CELLULES 3D ============
+const membraneMat = new THREE.MeshPhysicalMaterial({ color: 0x88ffdd, roughness: 0.2, metalness: 0.1, transparent: true, opacity: 0.4, transmission: 0.5, thickness: 1.0, clearcoat: 1.0 });
+const nucleusMat = new THREE.MeshPhysicalMaterial({ color: 0x8338ec, roughness: 0.3, emissive: 0x8338ec, emissiveIntensity: 0.5 });
+const organelleMat = new THREE.MeshBasicMaterial({ color: 0x00ffc8 });
+const axonMat = new THREE.MeshPhysicalMaterial({ color: 0xffaa00, roughness: 0.4, emissive: 0xffaa00, emissiveIntensity: 0.3 });
+const muscleMat = new THREE.MeshPhysicalMaterial({ color: 0xff4d6d, roughness: 0.5, emissive: 0xff006e, emissiveIntensity: 0.3 });
+
+// 1. CELLULE SOUCHE
+const stemGroup = new THREE.Group();
+const stemMembrane = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 4), membraneMat);
+stemGroup.add(stemMembrane);
+const stemNucleus = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), nucleusMat);
+stemGroup.add(stemNucleus);
+for(let i=0; i<8; i++) {
+  const org = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), organelleMat);
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  const r = 0.7 + Math.random() * 0.3;
+  org.position.set(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
+  stemGroup.add(org);
+}
+scene.add(stemGroup);
+
+// 2. NEURONE
+const neuronGroup = new THREE.Group();
+const neuronBody = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 32), membraneMat);
+neuronGroup.add(neuronBody);
+const neuronNucleus = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), nucleusMat);
+neuronGroup.add(neuronNucleus);
+for(let i=0; i<6; i++) {
+  const dendrite = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.02, 0.8, 8), membraneMat);
+  const angle = (i / 6) * Math.PI * 2;
+  dendrite.position.set(Math.cos(angle) * 0.8, Math.sin(angle) * 0.8, 0);
+  dendrite.rotation.z = angle - Math.PI/2;
+  neuronGroup.add(dendrite);
+}
+const axon = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3, 16), axonMat);
+axon.rotation.z = Math.PI / 2;
+axon.position.x = 2;
+neuronGroup.add(axon);
+for(let i=0; i<5; i++) {
+  const myelin = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.05, 8, 16), new THREE.MeshBasicMaterial({color: 0xffffff}));
+  myelin.position.x = 1 + i * 0.5;
+  myelin.rotation.y = Math.PI / 2;
+  neuronGroup.add(myelin);
+}
+const impulse = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), new THREE.MeshBasicMaterial({color: 0xffff00}));
+impulse.position.x = 0.5;
+neuronGroup.add(impulse);
+neuronGroup.visible = false;
+scene.add(neuronGroup);
+
+// 3. CELLULE MUSCULAIRE
+const muscleGroup = new THREE.Group();
+const canvas = document.createElement('canvas');
+canvas.width = 256; canvas.height = 64;
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = '#ff4d6d'; ctx.fillRect(0,0,256,64);
+ctx.fillStyle = '#cc0033';
+for(let i=0; i<256; i+=16) { ctx.fillRect(i, 0, 8, 64); }
+const muscleTexture = new THREE.CanvasTexture(canvas);
+muscleTexture.wrapS = THREE.RepeatWrapping;
+muscleTexture.repeat.set(4, 1);
+const muscleFiberMat = new THREE.MeshPhysicalMaterial({ map: muscleTexture, roughness: 0.6, emissive: 0xff006e, emissiveIntensity: 0.2 });
+const muscleFiber = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 3, 32), muscleFiberMat);
+muscleFiber.rotation.z = Math.PI / 2;
+muscleGroup.add(muscleFiber);
+for(let i=0; i<4; i++) {
+  const n = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), nucleusMat);
+  n.position.x = -1 + i * 0.7;
+  muscleGroup.add(n);
+}
+muscleGroup.visible = false;
+scene.add(muscleGroup);
+
+// 4. CELLULE DE PEAU
+const skinGroup = new THREE.Group();
+const skinTileMat = new THREE.MeshPhysicalMaterial({ color: 0xffccaa, roughness: 0.4, transparent: true, opacity: 0.9 });
+for(let x=-1; x<=1; x++) {
+  for(let z=-1; z<=1; z++) {
+    const tile = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.2, 6), skinTileMat);
+    tile.position.set(x * 1.1, 0, z * 1.1);
+    skinGroup.add(tile);
+  }
+}
+const skinNucleus = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), nucleusMat);
+skinNucleus.position.y = 0.1;
+skinGroup.add(skinNucleus);
+skinGroup.visible = false;
+scene.add(skinGroup);
+
+// 5. CARDIOMYOCYTE
+const heartGroup = new THREE.Group();
+const heartCell = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 2), muscleFiberMat);
+heartGroup.add(heartCell);
+const heartNucleus = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), nucleusMat);
+heartGroup.add(heartNucleus);
+const branch1 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.8, 8), muscleFiberMat);
+branch1.position.set(0.6, 0.4, 0); branch1.rotation.z = -Math.PI/4;
+heartGroup.add(branch1);
+const branch2 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.8, 8), muscleFiberMat);
+branch2.position.set(-0.6, 0.4, 0); branch2.rotation.z = Math.PI/4;
+heartGroup.add(branch2);
+heartGroup.visible = false;
+scene.add(heartGroup);
+
+// ADN Double Hélice
+const dnaGroup = new THREE.Group();
+scene.add(dnaGroup);
+const dnaMat1 = new THREE.MeshBasicMaterial({color: 0x00ffc8});
+const dnaMat2 = new THREE.MeshBasicMaterial({color: 0xff006e});
+for(let i=0; i<40; i++) {
+  const y = (i - 20) * 0.3;
+  const angle = i * 0.5;
+  const n1 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), dnaMat1);
+  n1.position.set(Math.cos(angle) * 1.5, y, Math.sin(angle) * 1.5);
+  dnaGroup.add(n1);
+  const n2 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), dnaMat2);
+  n2.position.set(Math.cos(angle + Math.PI) * 1.5, y, Math.sin(angle + Math.PI) * 1.5);
+  dnaGroup.add(n2);
+  const bond = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3, 4), new THREE.MeshBasicMaterial({color: 0x444444, transparent: true, opacity: 0.3}));
+  bond.position.set(0, y, 0);
+  bond.rotation.z = Math.PI / 2;
+  bond.rotation.y = angle;
+  dnaGroup.add(bond);
+}
+dnaGroup.position.set(4, 0, -2);
+
+// ============ DONNÉES BIOLOGIQUES ============
+const cellData = {
+  stem: {
+    name: 'Célula Madre',
+    genes: { 'OCT4': true, 'SOX2': true, 'NANOG': true, 'Actina': false, 'Miosina': false, 'Queratina': false, 'Troponina': false, 'Neurofilamento': false },
+    desc: 'Célula pluripotente. Mantiene los genes de pluripotencia (OCT4, SOX2) activos. Puede convertirse en cualquier célula.'
+  },
+  neuron: {
+    name: 'Neurona',
+    genes: { 'OCT4': false, 'SOX2': false, 'NANOG': false, 'Actina': true, 'Miosina': false, 'Queratina': false, 'Troponina': false, 'Neurofilamento': true },
+    desc: 'Especializada en transmitir impulsos eléctricos. Expresa neurofilamentos para el axón. Forma dendritas y axones largos.'
+  },
+  muscle: {
+    name: 'Célula Muscular',
+    genes: { 'OCT4': false, 'SOX2': false, 'NANOG': false, 'Actina': true, 'Miosina': true, 'Queratina': false, 'Troponina': true, 'Neurofilamento': false },
+    desc: 'Especializada en la contracción. Contiene filamentos de actina y miosina (estriaciones). Tiene múltiples núcleos.'
+  },
+  skin: {
+    name: 'Célula de Piel',
+    genes: { 'OCT4': false, 'SOX2': false, 'NANOG': false, 'Actina': true, 'Miosina': false, 'Queratina': true, 'Troponina': false, 'Neurofilamento': false },
+    desc: 'Forma una barrera protectora. Produce queratina (proteína resistente). Se aplana y se une a otras células.'
+  },
+  heart: {
+    name: 'Cardiomiocito',
+    genes: { 'OCT4': false, 'SOX2': false, 'NANOG': false, 'Actina': true, 'Miosina': true, 'Queratina': false, 'Troponina': true, 'Neurofilamento': false },
+    desc: 'Célula del músculo cardíaco. Se contrae rítmicamente sin fatiga. Tiene ramificaciones para conectarse con otras células.'
+  }
+};
+
+// ============ FONCTIONS UI ============
+function updateGenePanel() {
+  const data = cellData[params.currentCell];
+  const container = document.getElementById('gene-list');
+  container.innerHTML = '';
+  Object.entries(data.genes).forEach(([gene, active]) => {
+    const row = document.createElement('div');
+    row.className = 'gene-row';
+    row.innerHTML = `<span>${gene}</span><span class="gene-status ${active ? 'on' : 'off'}">${active ? 'ON' : 'OFF'}</span>`;
+    container.appendChild(row);
+  });
+  document.getElementById('info-box').innerHTML = `<b>${data.name}:</b> ${data.desc}`;
+}
+
+function switchCell(cellType) {
+  params.currentCell = cellType;
+  
+  stemGroup.visible = (cellType === 'stem');
+  neuronGroup.visible = (cellType === 'neuron');
+  muscleGroup.visible = (cellType === 'muscle');
+  skinGroup.visible = (cellType === 'skin');
+  heartGroup.visible = (cellType === 'heart');
+  
+  document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`[data-cell="${cellType}"]`).classList.add('active');
+  document.getElementById('status-indicator').textContent = `🟢 ${cellData[cellType].name}`;
+  
+  updateGenePanel();
+  updateObservation();
+  showFeedback(`🧬 Diferenciación: ${cellData[cellType].name}`, 'success');
+}
+
+function updateObservation() {
+  const data = cellData[params.currentCell];
+  let text = `<b>${data.name}:</b> ${data.desc}<br><br>`;
+  
+  if (params.currentCell === 'neuron') text += '⚡ Observa el impulso eléctrico (partícula amarilla) viajando por el axón.';
+  else if (params.currentCell === 'muscle') text += '💪 Observa las estriaciones (bandas oscuras) formadas por actina y miosina.';
+  else if (params.currentCell === 'heart') text += '❤️ Observa la contracción rítmica automática del cardiomiocito.';
+  else if (params.currentCell === 'skin') text += '🛡️ Observa cómo las células se aplanan para formar una barrera protectora.';
+  
+  document.getElementById('observation-text').innerHTML = text;
+}
+
+// ============ ÉVÉNEMENTS ============
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchCell(btn.dataset.cell));
+});
+
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const mode = card.dataset.mode;
+    params.mode = mode;
+    document.getElementById('home-screen').classList.add('hidden');
+    document.getElementById('lab-ui').classList.add('active');
+    
+    const modeNames = { observe: '🔬 Observar', differentiate: '🧬 Diferenciación', genes: '🧬 Expresión Génica', therapy: '💊 Terapia Celular' };
+    document.getElementById('mode-title').textContent = modeNames[mode];
+    
+    if (mode === 'genes') camera.position.set(0, 0, 3);
+    else camera.position.set(0, 2, 6);
+    
+    updateGenePanel();
+    updateObservation();
+  });
+});
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('home-screen').classList.remove('hidden');
+  document.getElementById('lab-ui').classList.remove('active');
+  document.getElementById('pisa-panel').classList.remove('visible');
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  switchCell('stem');
+  camera.position.set(0, 2, 6);
+});
+
+document.getElementById('quiz-btn').addEventListener('click', startQuiz);
+document.getElementById('close-pisa').addEventListener('click', () => document.getElementById('pisa-panel').classList.remove('visible'));
+
+const feedback = document.getElementById('feedback');
+function showFeedback(text, type = 'success') {
+  feedback.textContent = text;
+  feedback.className = 'feedback show ' + type;
+  setTimeout(() => feedback.classList.remove('show'), 2000);
+}
+
+// ============ QUIZ ============
+const quizQuestions = [
+  { q: '¿Qué tienen en común todas las células de tu cuerpo?', choices: ['La misma forma', 'El mismo ADN', 'Los mismos organelos', 'La misma función'], correct: 1, explanation: 'Todas las células tienen el mismo ADN. Lo que cambia es qué genes están activos (expresados) y cuáles están silenciados.' },
+  { q: '¿Qué es la diferenciación celular?', choices: ['La división de una célula en dos', 'El proceso por el cual una célula se especializa', 'La muerte de una célula', 'La fusión de dos células'], correct: 1, explanation: 'Es el proceso por el cual una célula madre adquiere una forma y función específica (neurona, músculo, etc.).' },
+  { q: '¿Qué proteína es exclusiva de las células de la piel?', choices: ['Actina', 'Miosina', 'Queratina', 'Neurofilamento'], correct: 2, explanation: 'La queratina es una proteína resistente que forma la barrera protectora de la piel, el cabello y las uñas.' },
+  { q: '¿Por qué una neurona tiene un axón tan largo?', choices: ['Para almacenar más ADN', 'Para transmitir impulsos eléctricos a distancia', 'Para contraerse más fuerte', 'Para proteger el núcleo'], correct: 1, explanation: 'El axón permite transmitir señales eléctricas a largas distancias (hasta 1 metro en el cuerpo humano).' },
+  { q: 'En terapia celular, si un paciente tiene un infarto, ¿qué célula necesitamos generar?', choices: ['Neurona', 'Queratinocito', 'Cardiomiocito', 'Osteocito'], correct: 2, explanation: 'El infarto daña el músculo cardíaco. Necesitamos diferenciar células madre en cardiomiocitos para reparar el tejido.' }
+];
+
+let quizState = { currentQ: 0, score: 0, answered: false };
+
+function startQuiz() {
+  quizState = { currentQ: 0, score: 0, answered: false };
+  document.getElementById('quiz-modal').classList.add('visible');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = quizQuestions[quizState.currentQ];
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-progress"><span class="q-num">Pregunta ${quizState.currentQ + 1} / ${quizQuestions.length}</span><span class="q-score">Puntuación: ${quizState.score} / ${quizQuestions.length}</span></div>
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-choices">${q.choices.map((c, i) => `<button class="quiz-choice" data-idx="${i}">${c}</button>`).join('')}</div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <button class="quiz-next-btn" id="quiz-next-btn">${quizState.currentQ < quizQuestions.length - 1 ? 'Siguiente pregunta →' : 'Ver resultado final 🏆'}</button>
+  `;
+  document.querySelectorAll('.quiz-choice').forEach(btn => btn.addEventListener('click', () => handleQuizAnswer(parseInt(btn.dataset.idx))));
+  document.getElementById('quiz-next-btn').addEventListener('click', () => {
+    if (quizState.currentQ < quizQuestions.length - 1) { quizState.currentQ++; quizState.answered = false; renderQuizQuestion(); }
+    else showQuizResult();
+  });
+}
+
+function handleQuizAnswer(idx) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+  const q = quizQuestions[quizState.currentQ];
+  document.querySelectorAll('.quiz-choice').forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === idx && i !== q.correct) btn.classList.add('wrong');
+  });
+  const fb = document.getElementById('quiz-feedback');
+  if (idx === q.correct) { quizState.score++; fb.className = 'quiz-feedback show correct-fb'; fb.innerHTML = `✅ <b>¡Correcto!</b> ${q.explanation}`; }
+  else { fb.className = 'quiz-feedback show wrong-fb'; fb.innerHTML = `❌ <b>Incorrecto.</b> ${q.explanation}`; }
+  document.getElementById('quiz-next-btn').classList.add('show');
+}
+
+function showQuizResult() {
+  const total = quizQuestions.length;
+  const percent = Math.round((quizState.score / total) * 100);
+  let msg = percent === 100 ? '¡Perfecto! Eres un experto en biología celular.' : percent >= 75 ? '¡Muy bien! Buen dominio de la diferenciación.' : percent >= 50 ? 'Aprobado, pero repasa la expresión génica.' : 'Necesitas repasar. Vuelve al laboratorio.';
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-result">
+      <div style="font-size: 48px;">${percent === 100 ? '🏆' : percent >= 75 ? '🌟' : percent >= 50 ? '👍' : '📚'}</div>
+      <div class="score-big">${quizState.score} / ${total}</div>
+      <div class="score-label">${percent}% de aciertos</div>
+      <div class="score-msg">${msg}</div>
+      <button class="quiz-close-btn" id="quiz-close-btn">Continuar → Pregunta PISA</button>
+    </div>
+  `;
+  document.getElementById('quiz-close-btn').addEventListener('click', () => { document.getElementById('quiz-modal').classList.remove('visible'); showPISA(); });
+}
+
+function showPISA() {
+  document.getElementById('pisa-content').innerHTML = `
+    <h2>🎯 Pregunta PISA — Terapia Celular</h2>
+    <p>Un paciente sufre un infarto de miocardio, lo que causa la muerte de cardiomiocitos (células del corazón). Los científicos proponen usar células madre del propio paciente para reparar el corazón.</p>
+    <p><b style="color:#00ffc8">Preguntas:</b></p>
+    <p>1. ¿Por qué se usan células madre y no células de la piel?</p>
+    <p>2. ¿Qué factor de crecimiento debemos aplicar en el laboratorio?</p>
+    <p>3. ¿Por qué es mejor usar las células del propio paciente?</p>
+    
+    <div class="answer">
+      <b>1. Células madre:</b> Porque son pluripotentes. Las células de la piel ya están diferenciadas (expresan queratina, no troponina) y no pueden convertirse en músculo cardíaco. Las células madre pueden activar los genes necesarios (Actina, Miosina, Troponina).<br><br>
+      <b>2. Factor de crecimiento:</b> Debemos aplicar <b>BMP2 y FGF</b> (Factores de crecimiento fibroblástico) para inducir la expresión de genes cardíacos y silenciar los genes de pluripotencia (OCT4).<br><br>
+      <b>3. Células del propio paciente:</b> Para evitar el <b>rechazo inmunológico</b>. El sistema inmune reconoce las células como propias y no las ataca.
+    </div>
+    
+    <p style="color:#ffbe0b; font-size:12px; margin-top:12px;">
+      <b>Competencia PISA:</b> "Explicar" — aplicar el concepto de diferenciación y expresión génica a un problema médico real.
+    </p>
+  `;
+  document.getElementById('pisa-panel').classList.add('visible');
+}
+
+// ============ ANIMATION ============
+const clock = new THREE.Clock();
+function animate() {
+  const t = clock.getElapsedTime();
+  params.time = t;
+  
+  dnaGroup.rotation.y = t * 0.2;
+  
+  if (params.currentCell === 'stem') {
+    stemMembrane.rotation.y = t * 0.1;
+    stemMembrane.rotation.x = t * 0.05;
+  } else if (params.currentCell === 'neuron') {
+    impulse.position.x = 0.5 + ((t * 2) % 3);
+    if (impulse.position.x > 3.5) impulse.position.x = 0.5;
+  } else if (params.currentCell === 'muscle') {
+    const contraction = 1 + Math.sin(t * 3) * 0.05;
+    muscleFiber.scale.set(contraction, 1/contraction, 1/contraction);
+  } else if (params.currentCell === 'heart') {
+    const beat = 1 + Math.sin(t * 4) * 0.15;
+    heartGroup.scale.set(beat, beat, beat);
+  }
+  
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+updateGenePanel();
+</script>
+</body>
+</html>

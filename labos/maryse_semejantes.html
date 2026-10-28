@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Polígonos Semejantes</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-purple); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-purple); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔺 Laboratorio: Polígonos Semejantes</h1>
+  <div class="subtitle">Ajusta el factor de escala y observa cómo cambian los lados y las áreas.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Factor de escala <b>k</b> <span id="val-k">1.5</span></label>
+          <input type="range" id="range-k" min="0.5" max="3" step="0.1" value="1.5">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Triángulo original</div>
+        <div id="step-original" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Lados del triángulo semejante</div>
+        <div class="formula" id="step-lados">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Área del original</div>
+        <div class="formula" id="step-area-orig">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Área del semejante</div>
+        <div id="step-area-k" style="font-size:12px;color:var(--text-muted);">—</div>
+        <span class="result-big" id="step-area-sem">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 5 : Relación de áreas</div>
+        <div class="formula" id="step-relacion">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🧪 ¿QUÉ SON POLÍGONOS SEMEJANTES?</h3>
+      <p>Dos polígonos son <b>semejantes</b> si tienen:</p>
+      <p>1. <b>Los mismos ángulos</b> (misma forma).</p>
+      <p>2. <b>Lados proporcionales</b> (misma razón entre lados correspondientes).</p>
+      <p>El <b>factor de escala k</b> es la razón entre un lado del segundo y su correspondiente en el primero.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>Los polígonos semejantes se usan en <b>mapas a escala</b>, <b>maquetas</b> y <b>planos de arquitectura</b>. También en fotografía (cuando amplías una imagen) y en biología (las proporciones del cuerpo).</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> Si los lados crecen con factor k, el <b>área crece con factor k²</b>. Si k = 2, el área se multiplica por 4. Si k = 3, por 9.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let k = 1.5;
+
+// Triangle original (fixe)
+const baseA = { x: 100, y: 320 };
+const baseB = { x: 200, y: 320 };
+const baseC = { x: 100, y: 220 };
+const baseLados = [
+  { p1: baseA, p2: baseB, label: 'b', len: 100 },
+  { p1: baseB, p2: baseC, label: 'c', len: Math.sqrt(100*100 + 100*100) },
+  { p1: baseC, p2: baseA, label: 'a', len: 100 }
+];
+
+document.getElementById('range-k').addEventListener('input', (e) => {
+  k = parseFloat(e.target.value);
+  document.getElementById('val-k').textContent = k.toFixed(1);
+  update();
+});
+
+function drawTriangles() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Triangle original (bleu)
+  ctx.fillStyle = 'rgba(56,189,248,0.15)';
+  ctx.beginPath();
+  ctx.moveTo(baseA.x, baseA.y);
+  ctx.lineTo(baseB.x, baseB.y);
+  ctx.lineTo(baseC.x, baseC.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Triangle semejante (rose), à droite
+  const offsetX = 250;
+  const offsetY = 50;
+
+  const sA = { x: 100 + offsetX, y: 320 };
+  const sB = { x: 100 + 100*k + offsetX, y: 320 };
+  const sC = { x: 100 + offsetX, y: 320 - 100*k };
+
+  ctx.fillStyle = 'rgba(244,114,182,0.15)';
+  ctx.beginPath();
+  ctx.moveTo(sA.x, sA.y);
+  ctx.lineTo(sB.x, sB.y);
+  ctx.lineTo(sC.x, sC.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#f472b6';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Labels triangle original
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Original', 150, 340);
+
+  // Labels triangle semejante
+  ctx.fillStyle = '#f472b6';
+  ctx.fillText(`k = ${k.toFixed(1)}`, 100 + 50*k + offsetX, 340);
+
+  // Rectangle de référence (pour l'échelle)
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(50, 50, 400, 320);
+  ctx.setLineDash([]);
+}
+
+function update() {
+  const areaOrig = (100 * 100) / 2;
+  const areaSem = areaOrig * k * k;
+
+  document.getElementById('step-original').innerHTML = 
+    `Base = 100<br>Altura = 100<br>Hipotenusa = ${Math.sqrt(20000).toFixed(2)}`;
+
+  document.getElementById('step-lados').innerHTML = 
+    `Base = 100 × ${k.toFixed(1)} = ${(100*k).toFixed(1)}<br>` +
+    `Altura = 100 × ${k.toFixed(1)} = ${(100*k).toFixed(1)}<br>` +
+    `Hipotenusa = ${Math.sqrt(20000).toFixed(2)} × ${k.toFixed(1)} = ${(Math.sqrt(20000)*k).toFixed(2)}`;
+
+  document.getElementById('step-area-orig').textContent = 
+    `Área = (100 × 100) / 2 = ${areaOrig}`;
+
+  document.getElementById('step-area-k').innerHTML = 
+    `Área = ${areaOrig} × k² = ${areaOrig} × ${(k*k).toFixed(2)}`;
+  document.getElementById('step-area-sem').textContent = `${areaSem.toFixed(2)}`;
+
+  document.getElementById('step-relacion').textContent = 
+    `Área semejante / Área original = ${(areaSem / areaOrig).toFixed(2)} = k² = ${(k*k).toFixed(2)}`;
+
+  drawTriangles();
+}
+
+update();
+</script>
+</body>
+</html>

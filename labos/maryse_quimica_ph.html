@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Indicador de pH</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls { display: flex; flex-direction: column; gap: 10px; }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-purple); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-purple); }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  .btn {
+    flex: 1; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--border-card);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.1); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 24px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🧪 Laboratorio: Indicador de pH (Col Morada)</h1>
+  <div class="subtitle">Ajusta el pH y observa cómo cambia el color del indicador natural.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>pH de la solución <b>pH</b> <span id="val-ph">7.0</span></label>
+          <input type="range" id="range-ph" min="0" max="14" step="0.5" value="7">
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="setPh(2)">🍋 Limón (pH 2)</button>
+          <button class="btn" onclick="setPh(7)">💧 Agua (pH 7)</button>
+          <button class="btn" onclick="setPh(12)">🧼 Jabón (pH 12)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : pH de la solución</div>
+        <span class="result-big" id="step-ph">7.0</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Clasificación</div>
+        <div id="step-class" style="font-size:16px;font-weight:700;">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Color del indicador</div>
+        <div class="formula" id="step-color" style="font-size:14px;">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Concentración de H⁺</div>
+        <div class="formula" id="step-h">[H⁺] = 10⁻ᵖᴴ</div>
+        <div id="step-h-result" style="font-size:12px;color:var(--text-secondary);margin-top:4px;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🧪 MATERIALES</h3>
+      <div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">Col morada (repollo)</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Contiene antocianinas, un pigmento natural que cambia de color según el pH.</div>
+      </div>
+      <div style="padding: 8px 0;">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">Soluciones de prueba</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Limón (ácido), agua (neutro), jabón (básico).</div>
+      </div>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿QUÉ ESTÁ PASANDO?</h3>
+      <p>Las <b>antocianinas</b> del repollo morado cambian su estructura química según la concentración de iones H⁺ (pH). Por eso el color cambia.</p>
+      <div class="highlight">
+        <b>Escala de color real:</b><br>
+        🔴 Rojo (pH 0-3) · 🌸 Rosa (pH 4-5) · 🟣 Violeta (pH 6-7)<br>
+        🔵 Azul (pH 8) · 💠 Azul verdoso (pH 9) · 🟢 Verde (pH 10-11)<br>
+        🟡 Amarillo (pH 12-14)
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let ph = 7.0;
+
+document.getElementById('range-ph').addEventListener('input', (e) => {
+  ph = parseFloat(e.target.value);
+  document.getElementById('val-ph').textContent = ph.toFixed(1);
+  update();
+});
+
+function setPh(value) {
+  ph = value;
+  document.getElementById('range-ph').value = value;
+  document.getElementById('val-ph').textContent = value.toFixed(1);
+  update();
+}
+
+// ============================================
+// COULEURS DU CHOU ROUGE (échelle précise)
+// ============================================
+function phToColorData(ph) {
+  const stops = [
+    { ph: 0,  rgb: [180, 20, 30],   name: 'Rojo intenso',   emoji: '🔴' },
+    { ph: 2,  rgb: [220, 40, 60],   name: 'Rojo',           emoji: '🔴' },
+    { ph: 4,  rgb: [240, 100, 160], name: 'Rosa',           emoji: '🌸' },
+    { ph: 6,  rgb: [140, 80, 200],  name: 'Violeta',        emoji: '🟣' },
+    { ph: 7,  rgb: [100, 80, 220],  name: 'Violeta azulado',emoji: '🟣' },
+    { ph: 8,  rgb: [60, 100, 220],  name: 'Azul',           emoji: '🔵' },
+    { ph: 9,  rgb: [40, 160, 200],  name: 'Azul verdoso',   emoji: '💠' },
+    { ph: 10, rgb: [40, 190, 140],  name: 'Verde azulado',  emoji: '🟢' },
+    { ph: 11, rgb: [80, 200, 100],  name: 'Verde',          emoji: '🟢' },
+    { ph: 12, rgb: [180, 210, 90],  name: 'Amarillo verdoso',emoji: '🟡' },
+    { ph: 13, rgb: [230, 210, 80],  name: 'Amarillo',       emoji: '🟡' },
+    { ph: 14, rgb: [240, 200, 60],  name: 'Amarillo intenso',emoji: '🟡' }
+  ];
+
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (ph >= stops[i].ph && ph <= stops[i+1].ph) {
+      const t = (ph - stops[i].ph) / (stops[i+1].ph - stops[i].ph);
+      const c1 = stops[i].rgb;
+      const c2 = stops[i+1].rgb;
+      const rgb = [
+        Math.round(c1[0] + (c2[0] - c1[0]) * t),
+        Math.round(c1[1] + (c2[1] - c1[1]) * t),
+        Math.round(c1[2] + (c2[2] - c1[2]) * t)
+      ];
+      const nearest = t < 0.5 ? stops[i] : stops[i+1];
+      return { rgb, name: nearest.name, emoji: nearest.emoji };
+    }
+  }
+  return { rgb: [120, 60, 200], name: 'Violeta', emoji: '🟣' };
+}
+
+function drawBeaker() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const beakerW = 200;
+  const beakerH = 250;
+  const beakerY = H / 2 - beakerH / 2 + 20;
+
+  // Verre
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx - beakerW/2, beakerY);
+  ctx.lineTo(cx - beakerW/2, beakerY + beakerH);
+  ctx.lineTo(cx + beakerW/2, beakerY + beakerH);
+  ctx.lineTo(cx + beakerW/2, beakerY);
+  ctx.stroke();
+
+  // Liquide
+  const { rgb: [r, g, b] } = phToColorData(ph);
+  ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+  ctx.fillRect(cx - beakerW/2 + 3, beakerY + beakerH * 0.3, beakerW - 6, beakerH * 0.7 - 3);
+
+  // Surface
+  ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
+  ctx.beginPath();
+  ctx.ellipse(cx, beakerY + beakerH * 0.3, beakerW/2 - 3, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Reflet
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - beakerW/2 + 15, beakerY + 20);
+  ctx.lineTo(cx - beakerW/2 + 15, beakerY + beakerH - 20);
+  ctx.stroke();
+
+  // Label pH
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`pH ${ph.toFixed(1)}`, cx, beakerY - 20);
+}
+
+function update() {
+  document.getElementById('step-ph').textContent = ph.toFixed(1);
+  
+  const classEl = document.getElementById('step-class');
+  const colorEl = document.getElementById('step-color');
+  
+  if (ph < 6.5) {
+    classEl.innerHTML = '<span style="color:#ef4444;">ÁCIDO</span>';
+  } else if (ph > 7.5) {
+    classEl.innerHTML = '<span style="color:#38bdf8;">BÁSICO (alcalino)</span>';
+  } else {
+    classEl.innerHTML = '<span style="color:#22c55e;">NEUTRO</span>';
+  }
+  
+  const { rgb: [r, g, b], name, emoji } = phToColorData(ph);
+  colorEl.innerHTML = `<span style="color: rgb(${r},${g},${b}); font-weight:700;">${emoji} ${name}</span>`;
+  
+  const hConc = Math.pow(10, -ph);
+  document.getElementById('step-h-result').innerHTML = 
+    `[H⁺] = 10⁻${ph.toFixed(1)} = ${hConc.toExponential(2)} mol/L`;
+  
+  drawBeaker();
+}
+
+update();
+</script>
+</body>
+</html>

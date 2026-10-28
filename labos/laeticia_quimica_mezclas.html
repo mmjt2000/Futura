@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MezclaAR — Laboratorio de Mezclas y Disoluciones</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at center, #0a1a2e 0%, #000 100%);
+    color: #fff;
+  }
+  #canvas-container { position: fixed; inset: 0; z-index: 1; }
+  canvas { display: block; touch-action: none; }
+
+  .ui-panel {
+    position: fixed; z-index: 10;
+    background: rgba(10, 26, 46, 0.9);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 210, 255, 0.15);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  }
+
+  #home-screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    background: radial-gradient(ellipse at center, #0a1a2e 0%, #000 100%);
+    overflow-y: auto;
+  }
+  #home-screen.hidden { display: none; }
+  #home-screen h1 {
+    font-size: 42px; font-weight: 800;
+    background: linear-gradient(90deg, #00d2ff, #3a7bd5, #ffbe0b, #ff006e);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px; text-align: center;
+  }
+  #home-screen .subtitle { font-size: 14px; color: #8899aa; margin-bottom: 24px; text-align: center; }
+  .mode-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px; max-width: 560px; width: 100%;
+  }
+  .mode-card {
+    padding: 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0, 210, 255, 0.1);
+    cursor: pointer; transition: all 0.3s; text-align: left;
+  }
+  .mode-card:hover { background: rgba(0, 210, 255, 0.08); transform: translateY(-3px); border-color: rgba(0, 210, 255, 0.5); box-shadow: 0 10px 30px rgba(0, 210, 255, 0.1); }
+  .mode-card .emoji { font-size: 36px; margin-bottom: 8px; display: block; }
+  .mode-card .title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .mode-card .desc { font-size: 11px; color: #8899aa; line-height: 1.4; }
+
+  #lab-ui { display: none; }
+  #lab-ui.active { display: block; }
+
+  #top-bar { top: 12px; left: 12px; right: 12px; display: flex; align-items: center; gap: 10px; padding: 10px 14px; z-index: 20; }
+  .back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+  .back-btn:hover { background: rgba(255,255,255,0.15); }
+  .mode-title { flex: 1; font-size: 13px; font-weight: 600; }
+  .status-indicator {
+    font-size: 11px; color: #00d2ff;
+    padding: 4px 10px; border-radius: 12px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    font-family: "SF Mono", Consolas, monospace;
+  }
+
+  /* Bouton de fermeture générique */
+  .close-panel-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 20;
+    line-height: 1;
+  }
+  .close-panel-btn:hover {
+    background: rgba(255, 100, 100, 0.3);
+    border-color: #ff6464;
+    transform: scale(1.1);
+  }
+
+  /* PANNEAU SUBSTANCES (gauche) */
+  #substances-panel {
+    top: 70px; left: 12px;
+    width: 260px; max-height: calc(100vh - 90px);
+    overflow-y: auto;
+  }
+  #substances-panel h3 { font-size: 12px; color: #00d2ff; margin-bottom: 12px; letter-spacing: 1px; padding-right: 30px; }
+  .substance-btn {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    color: white;
+    cursor: pointer;
+    text-align: left;
+    font-size: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .substance-btn:hover { background: rgba(0, 210, 255, 0.1); border-color: #00d2ff; }
+  .substance-btn .icon { font-size: 20px; }
+  .substance-btn .info { display: flex; flex-direction: column; }
+  .substance-btn .name { font-size: 12px; font-weight: 600; }
+  .substance-btn .type { font-size: 9px; color: #8899aa; }
+
+  /* PANNEAU CLASSIFICATION (droite) */
+  #classification-panel {
+    top: 70px; right: 12px;
+    width: 280px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+  }
+  #classification-panel h3 { font-size: 12px; color: #ffbe0b; margin-bottom: 12px; letter-spacing: 1px; padding-right: 30px; }
+  .class-result {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    display: none;
+  }
+  .class-result.show { display: block; animation: slideIn 0.4s ease; }
+  @keyframes slideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .class-result.homogeneous {
+    background: rgba(0, 204, 100, 0.1);
+    border-left: 3px solid #00cc64;
+    color: #90ee90;
+  }
+  .class-result.heterogeneous {
+    background: rgba(255, 190, 11, 0.1);
+    border-left: 3px solid #ffbe0b;
+    color: #ffd86b;
+  }
+  .class-result .title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .class-result .formula {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    padding: 6px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* PANNEAU SÉPARATION */
+  #separation-panel {
+    bottom: 12px; left: 12px; right: 12px;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 14px 18px;
+    display: none;
+  }
+  #separation-panel.visible { display: block; }
+  #separation-panel h3 { font-size: 12px; color: #ff006e; margin-bottom: 8px; letter-spacing: 1px; padding-right: 30px; }
+  .separation-methods {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .sep-btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+    color: white;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+  .sep-btn:hover { background: rgba(255, 0, 110, 0.1); border-color: #ff006e; }
+  .sep-btn.correct { background: rgba(0, 204, 0, 0.2); border-color: #00cc00; color: #90ee90; }
+  .sep-btn.wrong { background: rgba(255, 0, 110, 0.2); border-color: #ff006e; color: #ff8fa3; }
+
+  #observation-panel {
+    bottom: 12px; left: 12px; right: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 14px 18px;
+    display: none;
+  }
+  #observation-panel.visible { display: block; }
+  #observation-panel h3 { font-size: 12px; color: #ffbe0b; margin-bottom: 8px; letter-spacing: 1px; padding-right: 30px; }
+  .observation-text { font-size: 13px; line-height: 1.6; color: #d0d8e8; }
+  .observation-text b { color: #ffbe0b; }
+
+  /* QUIZ MODAL */
+  #quiz-modal {
+    position: fixed; inset: 0; z-index: 60;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+  }
+  #quiz-modal.visible { display: flex; }
+  .quiz-box {
+    background: rgba(10, 26, 46, 0.95);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 20px; padding: 24px;
+    max-width: 560px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    position: relative;
+  }
+  .quiz-box h2 {
+    font-size: 18px; margin-bottom: 6px;
+    background: linear-gradient(90deg, #ffbe0b, #00d2ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-right: 30px;
+  }
+  .quiz-box .quiz-subtitle { font-size: 12px; color: #8899aa; margin-bottom: 16px; }
+  .quiz-progress { display: flex; justify-content: space-between; padding: 8px 12px; margin-bottom: 16px; background: rgba(255,255,255,0.04); border-radius: 10px; font-size: 12px; }
+  .quiz-progress .q-num { color: #ffbe0b; font-weight: 600; }
+  .quiz-progress .q-score { color: #00d2ff; font-weight: 600; }
+  .quiz-question { font-size: 14px; line-height: 1.6; margin-bottom: 16px; color: #fff; }
+  .quiz-choices { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-choice {
+    padding: 12px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; font-size: 13px; line-height: 1.5;
+    color: #d0d8e8; text-align: left;
+  }
+  .quiz-choice:hover { background: rgba(0, 210, 255, 0.1); border-color: rgba(0, 210, 255, 0.3); }
+  .quiz-choice.correct { background: rgba(0, 204, 0, 0.15); border-color: #00cc00; color: #90ee90; }
+  .quiz-choice.wrong { background: rgba(255, 0, 110, 0.15); border-color: #ff006e; color: #ff8fa3; }
+  .quiz-choice.disabled { pointer-events: none; opacity: 0.7; }
+  .quiz-feedback { margin-top: 12px; padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: rgba(0, 204, 0, 0.1); border-left: 3px solid #00cc00; color: #90ee90; }
+  .quiz-feedback.wrong-fb { background: rgba(255, 0, 110, 0.1); border-left: 3px solid #ff006e; color: #ff8fa3; }
+  .quiz-next-btn { margin-top: 14px; width: 100%; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; display: none; }
+  .quiz-next-btn.show { display: block; }
+  .quiz-result { text-align: center; padding: 20px; }
+  .quiz-result .score-big { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #ffbe0b, #00d2ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0; }
+  .quiz-result .score-label { font-size: 14px; color: #8899aa; margin-bottom: 16px; }
+  .quiz-result .score-msg { font-size: 14px; line-height: 1.6; color: #d0d8e8; margin-bottom: 20px; }
+  .quiz-close-btn { padding: 12px 24px; border-radius: 10px; background: linear-gradient(135deg, #ff006e, #8338ec); color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
+
+  #pisa-panel {
+    bottom: 12px; left: 12px; right: 12px;
+    max-width: 560px; margin: 0 auto;
+    display: none; max-height: 70vh; overflow-y: auto;
+    z-index: 25;
+  }
+  #pisa-panel.visible { display: block; }
+  #pisa-panel h2 { font-size: 14px; color: #00d2ff; margin-bottom: 10px; padding-right: 30px; }
+  #pisa-panel p { font-size: 13px; line-height: 1.6; color: #d0d8e8; margin-bottom: 10px; }
+  #pisa-panel .answer {
+    background: rgba(0, 210, 255, 0.08);
+    border-left: 3px solid #00d2ff;
+    padding: 10px 12px; border-radius: 6px;
+    font-size: 12px; margin: 8px 0; color: #a8d8ea;
+  }
+
+  .feedback {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px 28px; border-radius: 14px;
+    font-size: 15px; font-weight: 600;
+    z-index: 30; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feedback.show { opacity: 1; }
+  .feedback.success { background: rgba(0, 204, 100, 0.9); color: #000; box-shadow: 0 0 30px rgba(0, 204, 100, 0.5); }
+  .feedback.info { background: rgba(0, 210, 255, 0.9); color: #000; box-shadow: 0 0 30px rgba(0, 210, 255, 0.5); }
+
+  #quiz-btn-fixed {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ffbe0b, #ff006e);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 20;
+    font-size: 12px;
+  }
+  #quiz-btn-fixed:hover { transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<!-- ÉCRAN D'ACCUEIL -->
+<div id="home-screen">
+  <h1>🧪 MezclaAR</h1>
+  <div class="subtitle">Laboratorio de Mezclas y Disoluciones · 3° Secundaria</div>
+  
+  <div class="mode-grid">
+    <div class="mode-card" data-mode="explore">
+      <span class="emoji"></span>
+      <div class="title">Explorar Mezclas</div>
+      <div class="desc">Mezcla sustancias y observa el resultado</div>
+    </div>
+    <div class="mode-card" data-mode="classify">
+      <span class="emoji">📊</span>
+      <div class="title">Clasificar</div>
+      <div class="desc">¿Homogénea o heterogénea? Tú decides</div>
+    </div>
+    <div class="mode-card" data-mode="separate">
+      <span class="emoji">️</span>
+      <div class="title">Separar Mezclas</div>
+      <div class="desc">Elige la técnica correcta de separación</div>
+    </div>
+    <div class="mode-card" data-mode="challenge">
+      <span class="emoji">🏆</span>
+      <div class="title">Desafío PISA</div>
+      <div class="desc">Pon a prueba tus conocimientos</div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERFACE LABO -->
+<div id="lab-ui">
+  <div id="top-bar" class="ui-panel">
+    <button class="back-btn" id="back-btn">← Salir al inicio</button>
+    <div class="mode-title" id="mode-title">Modo</div>
+    <div class="status-indicator" id="status-indicator">🧪 Beaker vacío</div>
+  </div>
+
+  <!-- PANNEAU SUBSTANCES -->
+  <div id="substances-panel" class="ui-panel">
+    <button class="close-panel-btn" id="close-substances" title="Cerrar">✕</button>
+    <h3>🧪 SUSTANCIAS DISPONIBLES</h3>
+    <div id="substances-list"></div>
+    <button class="substance-btn" id="clear-beaker" style="margin-top:10px; background: rgba(255,0,110,0.1); border-color: #ff006e;">
+      <span class="icon">️</span>
+      <span class="info"><span class="name">Vaciar beaker</span><span class="type">Reiniciar experimento</span></span>
+    </button>
+  </div>
+
+  <!-- PANNEAU CLASSIFICATION -->
+  <div id="classification-panel" class="ui-panel">
+    <button class="close-panel-btn" id="close-classification" title="Cerrar">✕</button>
+    <h3>📊 CLASIFICACIÓN</h3>
+    <div class="class-result" id="class-result"></div>
+    <div id="mixture-info" style="font-size:11px; color:#8899aa; line-height:1.5; margin-top:10px;">
+      Selecciona sustancias para mezclar. La clasificación aparecerá aquí.
+    </div>
+  </div>
+
+  <!-- PANNEAU OBSERVATION -->
+  <div id="observation-panel" class="ui-panel">
+    <button class="close-panel-btn" id="close-observation" title="Cerrar">✕</button>
+    <h3>💡 LO QUE OBSERVAS</h3>
+    <div class="observation-text" id="observation-text">
+      Haz clic en las sustancias para agregarlas al beaker.
+    </div>
+  </div>
+
+  <!-- PANNEAU SÉPARATION -->
+  <div id="separation-panel" class="ui-panel">
+    <button class="close-panel-btn" id="close-separation" title="Cerrar">✕</button>
+    <h3>⚗️ TÉCNICAS DE SEPARACIÓN</h3>
+    <p style="font-size:11px; color:#8899aa; margin-bottom:10px;">¿Qué técnica usarías para separar esta mezcla?</p>
+    <div class="separation-methods" id="separation-methods"></div>
+    <div id="sep-feedback" style="margin-top:10px; font-size:12px; line-height:1.5;"></div>
+  </div>
+</div>
+
+<div id="canvas-container"></div>
+<div class="feedback" id="feedback"></div>
+
+<!-- QUIZ MODAL -->
+<div id="quiz-modal">
+  <div class="quiz-box">
+    <button class="close-panel-btn" id="close-quiz" title="Cerrar y volver">✕</button>
+    <h2>🧠 Quiz — Mezclas y Disoluciones</h2>
+    <div class="quiz-subtitle">Demuestra lo que aprendiste</div>
+    <div id="quiz-content"></div>
+  </div>
+</div>
+
+<!-- PISA PANEL -->
+<div id="pisa-panel" class="ui-panel">
+  <button class="close-panel-btn" id="close-pisa" title="Cerrar">✕</button>
+  <h2>🎯 Pregunta PISA</h2>
+  <div id="pisa-content"></div>
+</div>
+
+<button id="quiz-btn-fixed">🧠 Quiz PISA</button>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============ SCENE SETUP ============
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2, 5);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 0.5, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+keyLight.position.set(5, 8, 5);
+scene.add(keyLight);
+const blueLight = new THREE.PointLight(0x00d2ff, 2, 15);
+blueLight.position.set(-3, 3, 3);
+scene.add(blueLight);
+const pinkLight = new THREE.PointLight(0xff006e, 1, 15);
+pinkLight.position.set(3, 3, -3);
+scene.add(pinkLight);
+
+// Sol (paillasse)
+const benchGeo = new THREE.BoxGeometry(8, 0.15, 3);
+const benchMat = new THREE.MeshPhysicalMaterial({ color: 0x1a2a4a, roughness: 0.3, metalness: 0.5, transparent: true, opacity: 0.8 });
+const bench = new THREE.Mesh(benchGeo, benchMat);
+bench.position.y = -0.075;
+scene.add(bench);
+
+// ============ DONNÉES SUBSTANCES ============
+const substances = [
+  { id: 'water', name: 'Agua', icon: '💧', color: 0x4dabf7, type: 'solvente', state: 'liquid', soluble: true },
+  { id: 'salt', name: 'Sal (NaCl)', icon: '', color: 0xffffff, type: 'soluto', state: 'solid', soluble: true },
+  { id: 'sugar', name: 'Azúcar', icon: '🍬', color: 0xfff8dc, type: 'soluto', state: 'solid', soluble: true },
+  { id: 'oil', name: 'Aceite', icon: '🫒', color: 0xffd700, type: 'soluto', state: 'liquid', soluble: false },
+  { id: 'sand', name: 'Arena', icon: '🏖️', color: 0xd4a574, type: 'soluto', state: 'solid', soluble: false },
+  { id: 'iron', name: 'Limaduras de hierro', icon: '🔩', color: 0x808080, type: 'soluto', state: 'solid', soluble: false, magnetic: true },
+  { id: 'coffee', name: 'Café molido', icon: '☕', color: 0x4a2c1a, type: 'soluto', state: 'solid', soluble: false },
+  { id: 'alcohol', name: 'Alcohol', icon: '', color: 0xe8f4f8, type: 'solvente', state: 'liquid', soluble: true }
+];
+
+const separationTechniques = [
+  { id: 'filtration', name: 'Filtración', icon: '🔽', desc: 'Separa sólidos insolubles de líquidos usando un filtro' },
+  { id: 'decantation', name: 'Decantación', icon: '⚗️', desc: 'Separa líquidos inmiscibles o sólidos pesados por gravedad' },
+  { id: 'evaporation', name: 'Evaporación', icon: '♨️', desc: 'Separa un soluto disuelto evaporando el solvente' },
+  { id: 'magnetism', name: 'Imantación', icon: '🧲', desc: 'Separa sustancias magnéticas (hierro) de no magnéticas' },
+  { id: 'distillation', name: 'Destilación', icon: '️', desc: 'Separa líquidos miscibles con diferentes puntos de ebullición' }
+];
+
+// ============ ÉTAT ============
+let currentMode = 'explore';
+let beakerContents = [];
+let currentMixture = null;
+
+// ============ CRÉATION DU BEAKER 3D ============
+const beakerGroup = new THREE.Group();
+scene.add(beakerGroup);
+
+const beakerGlass = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.8, 0.8, 1.6, 32, 1, true),
+  new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.2, transmission: 0.9, clearcoat: 1.0, side: THREE.DoubleSide })
+);
+beakerGlass.position.y = 0.8;
+beakerGroup.add(beakerGlass);
+
+const beakerBottom = new THREE.Mesh(
+  new THREE.CircleGeometry(0.8, 32),
+  new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 })
+);
+beakerBottom.rotation.x = -Math.PI / 2;
+beakerGroup.add(beakerBottom);
+
+// Liquide dans le beaker
+const liquidMesh = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.75, 0.75, 1.0, 32),
+  new THREE.MeshPhysicalMaterial({ color: 0x4dabf7, roughness: 0.2, transparent: true, opacity: 0.6, transmission: 0.3, emissive: 0x4dabf7, emissiveIntensity: 0.2 })
+);
+liquidMesh.position.y = 0.5;
+beakerGroup.add(liquidMesh);
+
+const liquidSurface = new THREE.Mesh(
+  new THREE.CircleGeometry(0.75, 32),
+  new THREE.MeshBasicMaterial({ color: 0x4dabf7, transparent: true, opacity: 0.8, side: THREE.DoubleSide })
+);
+liquidSurface.rotation.x = -Math.PI / 2;
+liquidSurface.position.y = 1.0;
+beakerGroup.add(liquidSurface);
+
+// Particules (pour mélanges hétérogènes)
+const particles = [];
+function createParticle(color, x, y, z) {
+  const geo = new THREE.SphereGeometry(0.05 + Math.random() * 0.05, 8, 8);
+  const mat = new THREE.MeshPhysicalMaterial({ color: color, roughness: 0.5 });
+  const p = new THREE.Mesh(geo, mat);
+  p.position.set(x, y, z);
+  p.userData = {
+    velocity: new THREE.Vector3((Math.random() - 0.5) * 0.01, -0.01 - Math.random() * 0.02, (Math.random() - 0.5) * 0.01),
+    settled: false
+  };
+  beakerGroup.add(p);
+  particles.push(p);
+  return p;
+}
+
+function clearParticles() {
+  particles.forEach(p => beakerGroup.remove(p));
+  particles.length = 0;
+}
+
+// ============ CONSTRUCTION UI SUBSTANCES ============
+function buildSubstancesList() {
+  const list = document.getElementById('substances-list');
+  list.innerHTML = '';
+  substances.forEach(sub => {
+    const btn = document.createElement('button');
+    btn.className = 'substance-btn';
+    btn.innerHTML = `
+      <span class="icon">${sub.icon}</span>
+      <span class="info">
+        <span class="name">${sub.name}</span>
+        <span class="type">${sub.type === 'solvente' ? 'Solvente' : 'Soluto'} · ${sub.state === 'liquid' ? 'Líquido' : 'Sólido'}</span>
+      </span>
+    `;
+    btn.addEventListener('click', () => addToBeaker(sub));
+    list.appendChild(btn);
+  });
+}
+
+// ============ AJOUT AU BEAKER ============
+function addToBeaker(substance) {
+  // Vérifier si déjà présent
+  if (beakerContents.find(s => s.id === substance.id)) {
+    showFeedback(`⚠️ ${substance.name} ya está en el beaker`, 'info');
+    return;
+  }
+  
+  beakerContents.push(substance);
+  updateBeakerVisual();
+  updateClassification();
+  updateObservation();
+  updateStatus();
+  
+  showFeedback(`➕ ${substance.name} agregado`, 'success');
+}
+
+function updateBeakerVisual() {
+  // Couleur du liquide selon le contenu
+  if (beakerContents.length === 0) {
+    liquidMesh.visible = false;
+    liquidSurface.visible = false;
+    clearParticles();
+    return;
+  }
+  
+  liquidMesh.visible = true;
+  liquidSurface.visible = true;
+  
+  // Mélanger les couleurs
+  let r = 0, g = 0, b = 0;
+  beakerContents.forEach(s => {
+    const c = new THREE.Color(s.color);
+    r += c.r; g += c.g; b += c.b;
+  });
+  r /= beakerContents.length;
+  g /= beakerContents.length;
+  b /= beakerContents.length;
+  const mixedColor = new THREE.Color(r, g, b);
+  
+  liquidMesh.material.color.copy(mixedColor);
+  liquidMesh.material.emissive.copy(mixedColor);
+  liquidSurface.material.color.copy(mixedColor);
+  
+  // Hauteur du liquide
+  const level = Math.min(0.3 + beakerContents.length * 0.15, 1.2);
+  liquidMesh.scale.y = level;
+  liquidMesh.position.y = level / 2;
+  liquidSurface.position.y = level;
+  
+  // Particules pour substances insolubles
+  clearParticles();
+  const hasInsoluble = beakerContents.some(s => !s.soluble && s.type === 'soluto');
+  const hasLiquidInsoluble = beakerContents.some(s => s.id === 'oil');
+  
+  if (hasInsoluble || hasLiquidInsoluble) {
+    // Ajouter des particules visibles
+    beakerContents.forEach(s => {
+      if (!s.soluble && s.type === 'soluto') {
+        for (let i = 0; i < 15; i++) {
+          createParticle(s.color, (Math.random() - 0.5) * 1.2, 0.2 + Math.random() * 0.8, (Math.random() - 0.5) * 1.2);
+        }
+      }
+    });
+  }
+}
+
+// ============ CLASSIFICATION ============
+function updateClassification() {
+  const result = document.getElementById('class-result');
+  const info = document.getElementById('mixture-info');
+  
+  if (beakerContents.length === 0) {
+    result.classList.remove('show');
+    info.textContent = 'Selecciona sustancias para mezclar.';
+    currentMixture = null;
+    return;
+  }
+  
+  if (beakerContents.length === 1) {
+    result.classList.remove('show');
+    info.innerHTML = `<b>${beakerContents[0].name}</b> es una sustancia pura, no una mezcla. Agrega otra sustancia.`;
+    currentMixture = null;
+    return;
+  }
+  
+  // Déterminer le type de mélange
+  const solvent = beakerContents.find(s => s.type === 'solvente');
+  const solutes = beakerContents.filter(s => s.type === 'soluto');
+  const insolubles = solutes.filter(s => !s.soluble);
+  const liquids = beakerContents.filter(s => s.state === 'liquid');
+  
+  let type, explanation, formula;
+  
+  if (insolubles.length === 0 && solvent) {
+    // Tous les solutés sont solubles → homogène
+    type = 'homogeneous';
+    const soluteNames = solutes.map(s => s.name).join(' + ');
+    explanation = `Todos los solutos (${soluteNames}) se disuelven en el solvente (${solvent.name}). No se pueden distinguir las partes a simple vista. Es una <b>disolución</b>.`;
+    formula = `Disolución: ${solvent.name} + ${soluteNames}`;
+    currentMixture = { type: 'homogeneous', method: 'evaporation' };
+  } else if (liquids.length >= 2 && liquids.some(l => l.id === 'oil')) {
+    // Liquides non miscibles → hétérogène
+    type = 'heterogeneous';
+    explanation = `Los líquidos no se mezclan (son <b>inmiscibles</b>). Se forman capas visibles: el aceite flota sobre el agua porque es menos denso.`;
+    formula = `Mezcla heterogénea: capas separadas`;
+    currentMixture = { type: 'heterogeneous', method: 'decantation' };
+  } else if (insolubles.length > 0 && solvent) {
+    // Solides insolubles dans liquide → hétérogène
+    type = 'heterogeneous';
+    const insolNames = insolubles.map(s => s.name).join(', ');
+    explanation = `Los sólidos <b>${insolNames}</b> no se disuelven en el líquido. Se pueden ver las partículas suspendidas o sedimentadas.`;
+    formula = `Mezcla heterogénea: sólido en líquido`;
+    currentMixture = { type: 'heterogeneous', method: 'filtration' };
+  } else {
+    type = 'heterogeneous';
+    explanation = 'Mezcla de sustancias que no se disuelven completamente.';
+    formula = 'Mezcla heterogénea';
+    currentMixture = { type: 'heterogeneous', method: 'filtration' };
+  }
+  
+  result.className = `class-result show ${type}`;
+  result.innerHTML = `
+    <div class="title">${type === 'homogeneous' ? '✅ MEZCLA HOMOGÉNEA' : '⚠️ MEZCLA HETEROGÉNEA'}</div>
+    <p>${explanation}</p>
+    <div class="formula">${formula}</div>
+  `;
+  
+  info.innerHTML = `<b>Sustancias en el beaker:</b> ${beakerContents.map(s => s.name).join(', ')}`;
+  
+  // Afficher le panneau séparation si en mode separate
+  if (currentMode === 'separate' && currentMixture) {
+    showSeparationPanel();
+  }
+}
+
+// ============ OBSERVATION ============
+function updateObservation() {
+  const panel = document.getElementById('observation-panel');
+  const text = document.getElementById('observation-text');
+  
+  if (beakerContents.length === 0) {
+    panel.classList.remove('visible');
+    return;
+  }
+  panel.classList.add('visible');
+  
+  let obs = '';
+  if (beakerContents.length === 1) {
+    obs = `<b>${beakerContents[0].name}</b> solo. No es una mezcla todavía.`;
+  } else {
+    const hasInsoluble = beakerContents.some(s => !s.soluble && s.type === 'soluto');
+    if (hasInsoluble) {
+      obs = '️ Observa las <b>partículas visibles</b> en el beaker. No se disuelven. Puedes ver las diferentes fases de la mezcla.';
+    } else {
+      obs = '👁️ El líquido parece <b>uniforme</b>. No puedes distinguir las sustancias a simple vista. Es una disolución homogénea.';
+    }
+  }
+  text.innerHTML = obs;
+}
+
+function updateStatus() {
+  const status = document.getElementById('status-indicator');
+  if (beakerContents.length === 0) status.textContent = ' Beaker vacío';
+  else if (beakerContents.length === 1) status.textContent = ` 1 sustancia`;
+  else status.textContent = `🧪 ${beakerContents.length} sustancias`;
+}
+
+// ============ PANNEAU SÉPARATION ============
+function showSeparationPanel() {
+  const panel = document.getElementById('separation-panel');
+  panel.classList.add('visible');
+  const methods = document.getElementById('separation-methods');
+  methods.innerHTML = '';
+  document.getElementById('sep-feedback').textContent = '';
+  
+  separationTechniques.forEach(tech => {
+    const btn = document.createElement('button');
+    btn.className = 'sep-btn';
+    btn.innerHTML = `${tech.icon} ${tech.name}`;
+    btn.title = tech.desc;
+    btn.addEventListener('click', () => testSeparation(tech));
+    methods.appendChild(btn);
+  });
+}
+
+function testSeparation(tech) {
+  if (!currentMixture) return;
+  
+  const buttons = document.querySelectorAll('.sep-btn');
+  const feedback = document.getElementById('sep-feedback');
+  
+  buttons.forEach(b => {
+    b.classList.remove('correct', 'wrong');
+    if (b.textContent.includes(tech.name)) {
+      if (tech.id === currentMixture.method) {
+        b.classList.add('correct');
+        feedback.innerHTML = `✅ <b style="color:#90ee90;">¡Correcto!</b> La ${tech.name.toLowerCase()} es la técnica adecuada. ${tech.desc}`;
+        showFeedback('✅ ¡Técnica correcta!', 'success');
+      } else {
+        b.classList.add('wrong');
+        feedback.innerHTML = `❌ <b style="color:#ff8fa3;">No es la mejor técnica.</b> ${tech.desc}<br><br>💡 Piensa: ¿las sustancias están disueltas o suspendidas? ¿Son líquidas o sólidas?`;
+      }
+    }
+  });
+}
+
+// ============ VIDER LE BEAKER ============
+document.getElementById('clear-beaker').addEventListener('click', () => {
+  beakerContents = [];
+  updateBeakerVisual();
+  updateClassification();
+  updateObservation();
+  updateStatus();
+  document.getElementById('separation-panel').classList.remove('visible');
+  showFeedback('️ Beaker vaciado', 'info');
+});
+
+// ============ FERMETURE DES FENÊTRES ============
+function closeAllAndGoHome() {
+  document.getElementById('substances-panel').classList.remove('visible');
+  document.getElementById('classification-panel').classList.remove('visible');
+  document.getElementById('observation-panel').classList.remove('visible');
+  document.getElementById('separation-panel').classList.remove('visible');
+  document.getElementById('pisa-panel').classList.remove('visible');
+  document.getElementById('quiz-modal').classList.remove('visible');
+  document.getElementById('lab-ui').classList.remove('active');
+  document.getElementById('home-screen').classList.remove('hidden');
+  beakerContents = [];
+  updateBeakerVisual();
+  currentMixture = null;
+}
+
+document.getElementById('back-btn').addEventListener('click', closeAllAndGoHome);
+document.getElementById('close-substances').addEventListener('click', () => document.getElementById('substances-panel').style.display = 'none');
+document.getElementById('close-classification').addEventListener('click', () => document.getElementById('classification-panel').style.display = 'none');
+document.getElementById('close-observation').addEventListener('click', () => document.getElementById('observation-panel').classList.remove('visible'));
+document.getElementById('close-separation').addEventListener('click', () => document.getElementById('separation-panel').classList.remove('visible'));
+document.getElementById('close-quiz').addEventListener('click', closeAllAndGoHome);
+document.getElementById('close-pisa').addEventListener('click', () => document.getElementById('pisa-panel').classList.remove('visible'));
+
+// ============ MODES ============
+function setMode(mode) {
+  currentMode = mode;
+  beakerContents = [];
+  updateBeakerVisual();
+  currentMixture = null;
+  
+  document.getElementById('substances-panel').style.display = 'block';
+  document.getElementById('classification-panel').style.display = 'block';
+  document.getElementById('observation-panel').classList.remove('visible');
+  document.getElementById('separation-panel').classList.remove('visible');
+  
+  const modeNames = {
+    explore: ' Explorar Mezclas',
+    classify: ' Clasificar',
+    separate: '️ Separar Mezclas',
+    challenge: '🏆 Desafío PISA'
+  };
+  document.getElementById('mode-title').textContent = modeNames[mode];
+  
+  if (mode === 'separate') {
+    showFeedback('⚗️ Mezcla sustancias y elige la técnica de separación', 'info');
+  } else if (mode === 'classify') {
+    showFeedback('📊 Mezcla y observa si es homogénea o heterogénea', 'info');
+  }
+}
+
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const mode = card.dataset.mode;
+    document.getElementById('home-screen').classList.add('hidden');
+    document.getElementById('lab-ui').classList.add('active');
+    setMode(mode);
+  });
+});
+
+// ============ FEEDBACK ============
+const feedback = document.getElementById('feedback');
+function showFeedback(text, type = 'success') {
+  feedback.textContent = text;
+  feedback.className = 'feedback show ' + type;
+  setTimeout(() => feedback.classList.remove('show'), 2000);
+}
+
+// ============ QUIZ ============
+const quizQuestions = [
+  { q: '¿Cuál de estas es una mezcla HOMOGÉNEA?', choices: ['Agua con arena', 'Agua con sal disuelta', 'Agua con aceite', 'Agua con limaduras de hierro'], correct: 1, explanation: 'La sal se disuelve completamente en el agua formando una disolución homogénea. No se pueden distinguir las partes.' },
+  { q: '¿Qué técnica usarías para separar agua con arena?', choices: ['Evaporación', 'Filtración', 'Imantación', 'Destilación'], correct: 1, explanation: 'La filtración separa sólidos insolubles (arena) de líquidos (agua) usando un filtro.' },
+  { q: '¿Por qué el aceite y el agua forman una mezcla heterogénea?', choices: ['Porque el aceite es más pesado', 'Porque son líquidos inmiscibles', 'Porque el agua es caliente', 'Porque el aceite es sólido'], correct: 1, explanation: 'El aceite y el agua son inmiscibles: no se mezclan. Forman capas separadas, con el aceite arriba por ser menos denso.' },
+  { q: '¿Cómo separarías sal disuelta en agua?', choices: ['Filtración', 'Decantación', 'Evaporación', 'Imantación'], correct: 2, explanation: 'La evaporación calienta la disolución hasta que el agua se evapora, dejando la sal como residuo sólido.' },
+  { q: '¿Qué técnica separa el hierro de la arena?', choices: ['Filtración', 'Evaporación', 'Imantación', 'Destilación'], correct: 2, explanation: 'La imantación usa un imán para atraer las limaduras de hierro (magnéticas), separándolas de la arena (no magnética).' }
+];
+
+let quizState = { currentQ: 0, score: 0, answered: false };
+
+function startQuiz() {
+  quizState = { currentQ: 0, score: 0, answered: false };
+  document.getElementById('quiz-modal').classList.add('visible');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = quizQuestions[quizState.currentQ];
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-progress"><span class="q-num">Pregunta ${quizState.currentQ + 1} / ${quizQuestions.length}</span><span class="q-score">Puntuación: ${quizState.score} / ${quizQuestions.length}</span></div>
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-choices">${q.choices.map((c, i) => `<button class="quiz-choice" data-idx="${i}">${c}</button>`).join('')}</div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <button class="quiz-next-btn" id="quiz-next-btn">${quizState.currentQ < quizQuestions.length - 1 ? 'Siguiente pregunta →' : 'Ver resultado final 🏆'}</button>
+  `;
+  document.querySelectorAll('.quiz-choice').forEach(btn => btn.addEventListener('click', () => handleQuizAnswer(parseInt(btn.dataset.idx))));
+  document.getElementById('quiz-next-btn').addEventListener('click', () => {
+    if (quizState.currentQ < quizQuestions.length - 1) { quizState.currentQ++; quizState.answered = false; renderQuizQuestion(); }
+    else showQuizResult();
+  });
+}
+
+function handleQuizAnswer(idx) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+  const q = quizQuestions[quizState.currentQ];
+  document.querySelectorAll('.quiz-choice').forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === idx && i !== q.correct) btn.classList.add('wrong');
+  });
+  const fb = document.getElementById('quiz-feedback');
+  if (idx === q.correct) { quizState.score++; fb.className = 'quiz-feedback show correct-fb'; fb.innerHTML = `✅ <b>¡Correcto!</b> ${q.explanation}`; }
+  else { fb.className = 'quiz-feedback show wrong-fb'; fb.innerHTML = ` <b>Incorrecto.</b> ${q.explanation}`; }
+  document.getElementById('quiz-next-btn').classList.add('show');
+}
+
+function showQuizResult() {
+  const total = quizQuestions.length;
+  const percent = Math.round((quizState.score / total) * 100);
+  let msg = percent === 100 ? '¡Perfecto! Eres un experto en mezclas.' : percent >= 75 ? '¡Muy bien! Buen dominio del tema.' : percent >= 50 ? 'Aprobado, pero repasa las técnicas de separación.' : 'Necesitas repasar. Vuelve al laboratorio.';
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-result">
+      <div style="font-size: 48px;">${percent === 100 ? '🏆' : percent >= 75 ? '🌟' : percent >= 50 ? '👍' : '📚'}</div>
+      <div class="score-big">${quizState.score} / ${total}</div>
+      <div class="score-label">${percent}% de aciertos</div>
+      <div class="score-msg">${msg}</div>
+      <button class="quiz-close-btn" id="quiz-close-btn-final">Continuar → Pregunta PISA</button>
+    </div>
+  `;
+  document.getElementById('quiz-close-btn-final').addEventListener('click', () => { 
+    document.getElementById('quiz-modal').classList.remove('visible'); 
+    showPISA(); 
+  });
+}
+
+function showPISA() {
+  document.getElementById('pisa-content').innerHTML = `
+    <h2>🎯 Pregunta PISA — El Agua del Mar</h2>
+    <p>El agua del mar es una mezcla compleja. Contiene agua (H₂O), sal (NaCl), arena en suspensión, y pequeños organismos. Un científico necesita obtener agua pura a partir del agua del mar.</p>
+    <p><b style="color:#00d2ff">Preguntas:</b></p>
+    <p>1. ¿Qué tipo de mezcla es el agua del mar? ¿Por qué?</p>
+    <p>2. ¿Qué técnicas de separación usarías, y en qué orden, para obtener agua pura?</p>
+    <p>3. ¿Por qué no basta con una sola técnica?</p>
+    
+    <div class="answer">
+      <b>1. Tipo de mezcla:</b> El agua del mar es una <b>mezcla heterogénea</b> compleja. Tiene partes homogéneas (sal disuelta en agua = disolución) y partes heterogéneas (arena en suspensión, organismos).<br><br>
+      <b>2. Técnicas en orden:</b><br>
+      • Primero <b>filtración</b>: para separar la arena y organismos (sólidos insolubles) del agua con sal.<br>
+      • Luego <b>destilación</b>: para separar el agua pura de la sal disuelta. El agua se evapora y se condensa limpia; la sal queda como residuo.<br><br>
+      <b>3. Por qué no basta una técnica:</b> Porque el agua del mar tiene componentes de diferente naturaleza. La filtración no separa la sal (está disuelta, pasa por el filtro). La destilación sola sería ineficiente con arena (se quemaría en el fondo). Se necesitan técnicas complementarias.
+    </div>
+    
+    <p style="color:#ffbe0b; font-size:12px; margin-top:12px;">
+      <b>Competencia PISA:</b> "Explicar" — aplicar técnicas de separación a un problema real, justificando el orden y la elección de cada técnica.
+    </p>
+  `;
+  document.getElementById('pisa-panel').classList.add('visible');
+}
+
+document.getElementById('quiz-btn-fixed').addEventListener('click', startQuiz);
+
+// ============ ANIMATION ============
+const clock = new THREE.Clock();
+function animate() {
+  const t = clock.getElapsedTime();
+  
+  // Animation des particules
+  particles.forEach(p => {
+    if (!p.userData.settled) {
+      p.position.add(p.userData.velocity);
+      if (p.position.y < 0.1) {
+        p.position.y = 0.1;
+        p.userData.settled = true;
+      }
+    }
+  });
+  
+  // Oscillation du liquide
+  if (liquidMesh.visible) {
+    liquidSurface.position.y += Math.sin(t * 2) * 0.001;
+  }
+  
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ============ INIT ============
+buildSubstancesList();
+updateBeakerVisual();
+</script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Sucesiones y Patrones</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-purple); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-purple); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 12px;
+  }
+  .result-big {
+    font-size: 16px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔢 Laboratorio: Sucesiones y Patrones</h1>
+  <div class="subtitle">Elige una sucesión y observa cómo crece paso a paso.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Elige la sucesión:</label>
+          <select id="select-serie" style="width:100%;padding:10px;background:rgba(0,0,0,0.3);border:1px solid var(--border-card);border-radius:8px;color:var(--text-primary);font-size:13px;">
+            <option value="aritmetica">Aritmética (suma constante)</option>
+            <option value="geometrica">Geométrica (multiplicación constante)</option>
+            <option value="fibonacci">Fibonacci (suma de los dos anteriores)</option>
+            <option value="cuadrados">Cuadrados perfectos (n²)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Términos a mostrar <span id="val-n">10</span></label>
+          <input type="range" id="range-n" min="3" max="20" step="1" value="10">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Tipo de sucesión</div>
+        <div id="step-type" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Regla / Patrón</div>
+        <div class="formula" id="step-rule">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Primeros términos</div>
+        <div class="formula" id="step-terms" style="word-break:break-all;">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Término n-ésimo (fórmula)</div>
+        <div class="formula" id="step-formula">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🔢 ¿QUÉ ES UNA SUCESIÓN?</h3>
+      <p>Una <b>sucesión</b> es una lista ordenada de números que siguen un patrón. Cada número se llama <b>término</b>.</p>
+      <p>Hay dos tipos principales: <b>aritmética</b> (sumas una cantidad constante) y <b>geométrica</b> (multiplicas por una cantidad constante).</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>Las sucesiones están en la naturaleza (la espiral de Fibonacci en los caracoles), en las finanzas (interés compuesto) y en la tecnología (algoritmos).</p>
+      <div class="highlight">
+        <b>Curiosidad:</b> La sucesión de Fibonacci aparece en los pétalos de las flores, en las piñas y hasta en la forma de las galaxias. ¡La naturaleza ama los patrones!
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let tipo = 'aritmetica';
+let n = 10;
+
+document.getElementById('select-serie').addEventListener('change', (e) => {
+  tipo = e.target.value;
+  update();
+});
+
+document.getElementById('range-n').addEventListener('input', (e) => {
+  n = parseInt(e.target.value);
+  document.getElementById('val-n').textContent = n;
+  update();
+});
+
+function generarSucesion() {
+  const serie = [];
+  if (tipo === 'aritmetica') {
+    for (let i = 1; i <= n; i++) serie.push(2 + (i-1) * 3);
+  } else if (tipo === 'geometrica') {
+    for (let i = 1; i <= n; i++) serie.push(1 * Math.pow(2, i-1));
+  } else if (tipo === 'fibonacci') {
+    let a = 1, b = 1;
+    serie.push(a, b);
+    for (let i = 2; i < n; i++) {
+      const c = a + b;
+      serie.push(c);
+      a = b;
+      b = c;
+    }
+  } else if (tipo === 'cuadrados') {
+    for (let i = 1; i <= n; i++) serie.push(i * i);
+  }
+  return serie.slice(0, n);
+}
+
+function drawChart(serie) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  const padding = 40;
+  const chartW = W - padding * 2;
+  const chartH = H - padding * 2;
+  const maxVal = Math.max(...serie);
+  const barW = Math.min(30, chartW / serie.length - 6);
+
+  serie.forEach((val, i) => {
+    const x = padding + i * (chartW / serie.length) + (chartW / serie.length - barW) / 2;
+    const barH = (val / maxVal) * chartH;
+    const y = H - padding - barH;
+
+    ctx.fillStyle = 'rgba(56,189,248,0.6)';
+    ctx.fillRect(x, y, barW, barH);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(val, x + barW / 2, y - 6);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(`n=${i+1}`, x + barW / 2, H - padding + 16);
+  });
+}
+
+function update() {
+  const serie = generarSucesion();
+  
+  const typeNames = {
+    'aritmetica': 'Aritmética (diferencia constante)',
+    'geometrica': 'Geométrica (razón constante)',
+    'fibonacci': 'Fibonacci (suma de los dos anteriores)',
+    'cuadrados': 'Cuadrados perfectos'
+  };
+
+  document.getElementById('step-type').textContent = typeNames[tipo];
+
+  const rules = {
+    'aritmetica': 'aₙ = 2 + (n-1) × 3',
+    'geometrica': 'aₙ = 1 × 2⁽ⁿ⁻¹⁾',
+    'fibonacci': 'aₙ = aₙ₋₁ + aₙ₋₂',
+    'cuadrados': 'aₙ = n²'
+  };
+  document.getElementById('step-rule').textContent = rules[tipo];
+
+  document.getElementById('step-terms').textContent = serie.slice(0, 8).join(', ') + (serie.length > 8 ? ', ...' : '');
+
+  document.getElementById('step-formula').textContent = rules[tipo];
+
+  drawChart(serie);
+}
+
+update();
+</script>
+</body>
+</html>

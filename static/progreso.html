@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e27">
+<title>FUTURA — Progreso</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="stylesheet" href="/static/theme.css">
+<style>
+  .stat-row { display: flex; gap: 10px; margin-top: 12px; }
+  .stat {
+    flex: 1; background: var(--bg-elevated); border-radius: 12px;
+    padding: 12px; text-align: center;
+  }
+  .stat .value { font-size: 20px; font-weight: 800; }
+  .stat .label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .badge-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 12px;
+    background: var(--bg-card); border: 1px solid var(--border-card);
+    margin-bottom: 8px;
+  }
+  .badge-card.locked { opacity: 0.45; }
+  .badge-card .icon { font-size: 22px; }
+  .badge-card .name { font-size: 13px; font-weight: 700; }
+  .badge-card .desc { font-size: 11px; color: var(--text-muted); }
+  .cat-row { margin-bottom: 14px; }
+  .cat-head { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .cat-head .count { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header">
+    <div class="page-title">📊 Progreso</div>
+    <div class="header-right">
+      <div class="theme-switch" id="themeSwitch"><div class="knob" id="themeKnob">🌙</div></div>
+    </div>
+  </div>
+
+  <div id="content"><div class="loading">Cargando…</div></div>
+</div>
+
+<div id="nav"></div>
+
+<script src="/static/app.js"></script>
+<script>
+const CATEGORIAS = {
+  matematicas: { label: "📐 Matemáticas", fields: ["ecuaciones_cuadraticas", "medidas_tendencia_central", "sistemas_ecuaciones", "teorema_pitagoras", "razones_trigonometricas", "poligonos_semejantes", "probabilidad", "sucesiones_patrones", "circulo_elementos", "ley_senos_cosenos", "poligonos_regulares", "funciones_trigonometricas", "estadisticas", "modelado_latidos_corazon"] },
+  quimica: { label: "🧪 Química", fields: ["quimica_ph", "quimica_volcan", "quimica_tabla_periodica", "quimica_moleculas", "quimica_mezclas", "quimica_separacion", "quimica_ecuaciones"] },
+  fisica: { label: "⚡ Física", fields: ["fisica_fuego", "fisica_circuitos"] },
+  biologia: { label: "🧬 Biología", fields: ["biologia_celula", "biologia_corazon", "genetica", "biologia_nutricion", "biologia_reproduccion", "biologia_tejidos"] },
+  tecnologia: { label: "💻 Tecnología", fields: ["tech_boucles", "tech_funciones"] },
+  finanzas: { label: "💰 Finanzas", fields: ["finanzas_interes", "finanzas_presupuesto"] },
+};
+
+async function boot() {
+  Futura.initTheme();
+  Futura.mountThemeSwitch();
+  Futura.mountNav("progreso");
+
+  const user = await Futura.currentUser();
+  const [summary, progress, parcours] = await Promise.all([
+    Futura.api(`/api/users/${user.id}/summary`),
+    Futura.api(`/api/users/${user.id}/progress`),
+    Futura.api(`/api/parcours/?target=${encodeURIComponent(user.name)}`),
+  ]);
+
+  const done = parcours.filter((p) => progress[p.id] && progress[p.id].completed);
+  const started = parcours.filter((p) => progress[p.id] && !progress[p.id].completed);
+
+  // Progression par catégorie
+  const catStats = {};
+  parcours.forEach((p) => {
+    const cat = Object.keys(CATEGORIAS).find((k) => CATEGORIAS[k].fields.includes(p.field)) || "otros";
+    catStats[cat] = catStats[cat] || { total: 0, done: 0 };
+    catStats[cat].total++;
+    if (progress[p.id] && progress[p.id].completed) catStats[cat].done++;
+  });
+
+  const catHtml = [...Object.keys(CATEGORIAS), "otros"]
+    .filter((k) => catStats[k])
+    .map((k) => {
+      const s = catStats[k];
+      const label = CATEGORIAS[k] ? CATEGORIAS[k].label : "📚 Otros";
+      const pct = Math.round((100 * s.done) / s.total);
+      return `
+        <div class="cat-row">
+          <div class="cat-head"><span>${label}</span><span class="count">${s.done}/${s.total}</span></div>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join("");
+
+  // Mêmes seuils que app/routers/users.py (BADGES), en proportion de l'XP totale.
+  const BADGE_META = [
+    { id: "exploradora", icon: "🌱", name: "Exploradora", ratio: 0.0 },
+    { id: "aprendiz", icon: "📗", name: "Aprendiz", ratio: 0.15 },
+    { id: "creadora", icon: "🎨", name: "Creadora", ratio: 0.35 },
+    { id: "innovadora", icon: "💡", name: "Innovadora", ratio: 0.60 },
+    { id: "future_leader", icon: "👑", name: "Future Leader", ratio: 0.85 },
+  ];
+
+  const badgesHtml = BADGE_META.map((badge) => {
+    const earned = summary.badges.find((b) => b.id === badge.id);
+    const threshold = Math.round(summary.xp_max * badge.ratio);
+    return `
+      <div class="badge-card ${earned ? "" : "locked"}">
+        <div class="icon">${badge.icon}</div>
+        <div style="flex:1;">
+          <div class="name">${badge.name}</div>
+          <div class="desc">${earned ? "Ganado" : `${threshold} XP necesarios`}</div>
+        </div>
+        <div>${earned ? "✅" : "🔒"}</div>
+      </div>`;
+  }).join("");
+
+  const listHtml = done.length
+    ? done.map((p) => `
+        <div class="badge-card">
+          <div class="icon">✅</div>
+          <div style="flex:1;">
+            <div class="name">${Futura.escapeHtml(p.title)}</div>
+            <div class="desc">+${p.xp_reward} XP</div>
+          </div>
+          <a class="btn btn-ghost btn-sm" href="/static/parcours_template.html?id=${encodeURIComponent(p.id)}">Repasar</a>
+        </div>`).join("")
+    : `<div class="empty">Todavía no has terminado ningún parcours. ¡Empieza por uno!</div>`;
+
+  document.getElementById("content").innerHTML = `
+    <div class="card">
+      <div class="card-title">🏅 TOTAL</div>
+      <div style="font-size:26px;font-weight:800;">${summary.xp} <span style="font-size:13px;color:var(--text-muted);">/ ${summary.xp_max} XP</span></div>
+      <div class="bar" style="margin-top:10px;"><div class="bar-fill" style="width:${summary.xp_percent}%"></div></div>
+      <div class="stat-row">
+        <div class="stat"><div class="value">${summary.parcours_done}</div><div class="label">Terminés</div></div>
+        <div class="stat"><div class="value">${summary.parcours_started}</div><div class="label">En cours</div></div>
+        <div class="stat"><div class="value">${summary.parcours_total}</div><div class="label">Au total</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📚 POR MATERIA</div>
+      ${catHtml || `<div class="empty">Aucune donnée.</div>`}
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎖️ DISTINTIVOS</div>
+      ${badgesHtml}
+    </div>
+
+    <div class="card">
+      <div class="card-title">✅ PARCOURS TERMINÉS</div>
+      ${listHtml}
+    </div>
+  `;
+}
+
+boot().catch((error) => {
+  document.getElementById("content").innerHTML =
+    `<div class="empty">⚠️ ${Futura.escapeHtml(error.message)}</div>`;
+});
+</script>
+</body>
+</html>

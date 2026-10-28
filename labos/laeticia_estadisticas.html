@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Estadísticas</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .controls label {
+    font-size: 12px; color: var(--text-secondary);
+    display: block; margin-bottom: 8px;
+  }
+  .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .input-row input {
+    flex: 1; padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-card);
+    border-radius: 8px; color: var(--text-primary);
+    font-size: 14px;
+  }
+  .input-row input:focus { outline: none; border-color: var(--accent-green); }
+  .btn {
+    padding: 10px 20px; border-radius: 10px;
+    border: none; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); color: #fff; }
+  .btn-danger { background: rgba(239,68,68,0.2); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
+
+  .dataset {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 12px;
+  }
+  .data-chip {
+    padding: 6px 12px; background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    color: var(--accent-green);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .data-chip button {
+    background: none; border: none; color: var(--accent-red);
+    cursor: pointer; font-size: 14px; font-weight: 700;
+  }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .calc-step .formula {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 6px;
+    margin-top: 6px; color: var(--accent-green);
+    font-size: 11px;
+    word-break: break-all;
+  }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    color: var(--accent-blue);
+    display: inline-block; margin-top: 4px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📊 Laboratorio: Estadísticas</h1>
+  <div class="subtitle">Agrega datos y observa cómo se calcula cada medida paso a paso.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="350"></canvas>
+      </div>
+
+      <div class="controls">
+        <label>Agregar un dato (0-100):</label>
+        <div class="input-row">
+          <input type="number" id="new-data" min="0" max="100" placeholder="Ej: 85">
+          <button class="btn btn-primary" onclick="addData()">Agregar</button>
+          <button class="btn btn-danger" onclick="clearData()">Limpiar</button>
+        </div>
+        <div class="dataset" id="dataset"></div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Datos ordenados</div>
+        <div class="formula" id="step-ordered">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 2 : Media (Σxᵢ / n)</div>
+        <div class="formula" id="step-media-formula">—</div>
+        <span class="result-big" id="step-media">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 3 : Mediana</div>
+        <div class="formula" id="step-mediana-formula">—</div>
+        <span class="result-big" id="step-mediana">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 4 : Desviación Estándar</div>
+        <div class="formula" id="step-std-formula">—</div>
+        <span class="result-big" id="step-std">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">PASO 5 : Rango</div>
+        <div class="formula" id="step-rango-formula">—</div>
+        <span class="result-big" id="step-rango">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>📊 ¿QUÉ ES CADA MEDIDA?</h3>
+      <p><b>Media:</b> el promedio. Sumas todos los datos y divides entre el número de datos.</p>
+      <p><b>Mediana:</b> el valor central. Ordenas los datos y buscas el del medio. Si hay dos, promedias.</p>
+      <p><b>Desviación Estándar:</b> cuánto se alejan los datos de la media en promedio.</p>
+      <p><b>Rango:</b> el máximo menos el mínimo.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ ES IMPORTANTE?</h3>
+      <p>La estadística nos ayuda a entender el mundo: desde encuestas de opinión hasta ensayos clínicos de medicamentos.</p>
+      <p><b>Ejemplo real:</b> Si la media de notas de una clase es 7.5 pero la desviación estándar es 2.5, hay estudiantes con notas muy diversas. Si la desviación es 0.5, todos tienen notas parecidas.</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> La media se ve afectada por valores extremos (un estudiante con 100 sube la media). La mediana es más robusta.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+let data = [65, 70, 75, 80, 85, 90, 95, 78, 82, 88];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+function addData() {
+  const input = document.getElementById('new-data');
+  const value = parseInt(input.value);
+  if (isNaN(value) || value < 0 || value > 100) return;
+  data.push(value);
+  input.value = '';
+  update();
+}
+
+function removeData(index) {
+  data.splice(index, 1);
+  update();
+}
+
+function clearData() {
+  data = [];
+  update();
+}
+
+function update() {
+  // Dataset chips
+  const datasetDiv = document.getElementById('dataset');
+  datasetDiv.innerHTML = data.map((d, i) => 
+    `<div class="data-chip">${d} <button onclick="removeData(${i})">×</button></div>`
+  ).join('');
+
+  if (data.length === 0) {
+    document.getElementById('step-ordered').textContent = '—';
+    document.getElementById('step-media-formula').textContent = '—';
+    document.getElementById('step-media').textContent = '—';
+    document.getElementById('step-mediana-formula').textContent = '—';
+    document.getElementById('step-mediana').textContent = '—';
+    document.getElementById('step-std-formula').textContent = '—';
+    document.getElementById('step-std').textContent = '—';
+    document.getElementById('step-rango-formula').textContent = '—';
+    document.getElementById('step-rango').textContent = '—';
+    drawChart();
+    return;
+  }
+
+  const sorted = [...data].sort((a, b) => a - b);
+  const n = data.length;
+  const sum = data.reduce((a, b) => a + b, 0);
+  const media = sum / n;
+
+  // Mediana
+  let mediana;
+  let medianaFormula;
+  const mid = Math.floor(n / 2);
+  if (n % 2 === 0) {
+    mediana = (sorted[mid - 1] + sorted[mid]) / 2;
+    medianaFormula = `Mediana = (${sorted[mid - 1]} + ${sorted[mid]}) / 2`;
+  } else {
+    mediana = sorted[mid];
+    medianaFormula = `Mediana = valor central = ${sorted[mid]}`;
+  }
+
+  // Desviación estándar (poblacional)
+  const variance = data.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / n;
+  const std = Math.sqrt(variance);
+  
+  // Calcul détaillé pour l'écart-type
+  const deviations = data.map(x => `(${x} - ${media.toFixed(2)})²`);
+  const deviationsStr = deviations.slice(0, 4).join(' + ') + (n > 4 ? ' + ...' : '');
+
+  // Rango
+  const maxVal = Math.max(...data);
+  const minVal = Math.min(...data);
+  const rango = maxVal - minVal;
+
+  // Étape 1 : données ordonnées
+  document.getElementById('step-ordered').textContent = sorted.join(', ');
+
+  // Étape 2 : média
+  document.getElementById('step-media-formula').innerHTML = 
+    `Media = (${data.join(' + ')}) / ${n}<br>` +
+    `Media = ${sum} / ${n}`;
+  document.getElementById('step-media').textContent = media.toFixed(2);
+
+  // Étape 3 : médiane
+  document.getElementById('step-mediana-formula').textContent = medianaFormula;
+  document.getElementById('step-mediana').textContent = mediana.toFixed(2);
+
+  // Étape 4 : écart-type
+  document.getElementById('step-std-formula').innerHTML = 
+    `σ = √[ ${deviationsStr} ] / ${n}<br>` +
+    `σ = √( ${variance.toFixed(2)} )`;
+  document.getElementById('step-std').textContent = std.toFixed(2);
+
+  // Étape 5 : étendue
+  document.getElementById('step-rango-formula').textContent = 
+    `Rango = ${maxVal} - ${minVal}`;
+  document.getElementById('step-rango').textContent = rango;
+
+  drawChart(sorted, media, mediana);
+}
+
+function drawChart(sorted, media, mediana) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!sorted || sorted.length === 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Agrega datos para ver el histograma', W/2, H/2);
+    return;
+  }
+
+  const padding = 40;
+  const chartW = W - padding * 2;
+  const chartH = H - padding * 2 - 20;
+
+  // Histogramme : regrouper les données par tranches de 10
+  const bins = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  sorted.forEach(d => {
+    let bin = Math.min(Math.floor(d / 10), 9);
+    bins[bin]++;
+  });
+
+  const maxBin = Math.max(...bins, 1);
+  const barW = chartW / 10 - 4;
+
+  bins.forEach((count, i) => {
+    const x = padding + i * (chartW / 10) + 2;
+    const barH = (count / maxBin) * chartH;
+    const y = H - padding - 20 - barH;
+
+    ctx.fillStyle = 'rgba(56,189,248,0.6)';
+    ctx.fillRect(x, y, barW, barH);
+
+    if (count > 0) {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(count, x + barW / 2, y - 6);
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(`${i*10}`, x + barW / 2, H - 25);
+  });
+
+  // Ligne média (orange)
+  const mediaX = padding + (media / 100) * chartW;
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(mediaX, padding);
+  ctx.lineTo(mediaX, H - padding - 20);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Media: ${media.toFixed(1)}`, mediaX, padding - 8);
+
+  // Ligne médiane (verte)
+  const medianaX = padding + (mediana / 100) * chartW;
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(medianaX, padding);
+  ctx.lineTo(medianaX, H - padding - 20);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#22c55e';
+  ctx.fillText(`Mediana: ${mediana.toFixed(1)}`, medianaX, padding - 25);
+}
+
+update();
+</script>
+</body>
+</html>

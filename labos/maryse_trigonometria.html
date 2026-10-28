@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUTURA — Laboratorio: Razones Trigonométricas</title>
+<style>
+  :root {
+    --bg-primary: #0a0e27;
+    --bg-card: rgba(255,255,255,0.04);
+    --border-card: rgba(255,255,255,0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-pink: #f472b6;
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-primary) 0%, #000 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px; margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent-orange), var(--accent-pink));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .lab-layout { grid-template-columns: 1fr; } }
+
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+  .canvas-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 10px;
+  }
+  canvas { display: block; width: 100%; border-radius: 8px; }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .control-group label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .control-group label span { color: var(--accent-orange); font-weight: 700; }
+  input[type="range"] { width: 100%; accent-color: var(--accent-orange); }
+
+  .right-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .right-col h3 {
+    font-size: 14px; color: var(--accent-orange);
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+  .calc-step {
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    font-size: 13px; line-height: 1.6;
+  }
+  .calc-step:last-child { border-bottom: none; }
+  .calc-step .step-title {
+    font-size: 11px; font-weight: 700; color: var(--accent-purple);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .formula-box {
+    font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 8px 12px; border-radius: 6px;
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  .formula-box.sin { color: var(--accent-pink); }
+  .formula-box.cos { color: var(--accent-green); }
+  .formula-box.tan { color: var(--accent-orange); }
+  .result-big {
+    font-size: 18px; font-weight: 800;
+    display: inline-block; margin-left: 8px;
+  }
+
+  .bottom-panels {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  @media (max-width: 800px) { .bottom-panels { grid-template-columns: 1fr; } }
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .info-box h3 { font-size: 14px; margin-bottom: 12px; }
+  .info-box.materials h3 { color: var(--accent-blue); }
+  .info-box.explanation h3 { color: var(--accent-green); }
+  .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .info-box b { color: var(--accent-blue); }
+  .info-box .highlight {
+    background: rgba(34,197,94,0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+  }
+  .soh-cah-toa {
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--accent-orange);
+    font-weight: 700;
+  }
+
+  .btn-back {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border-card);
+    color: var(--text-primary); border-radius: 10px;
+    text-decoration: none; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📐 Laboratorio: Razones Trigonométricas</h1>
+  <div class="subtitle">Ajusta el ángulo y observa cómo cambian el seno, el coseno y la tangente.</div>
+
+  <div class="lab-layout">
+    <div class="left-col">
+      <div class="canvas-container">
+        <canvas id="canvas" width="500" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Ángulo <b>θ</b> <span id="val-angle">30°</span></label>
+          <input type="range" id="range-angle" min="1" max="89" step="1" value="30">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <h3>📓 CARNET DE CÁLCULO</h3>
+      
+      <div class="calc-step">
+        <div class="step-title">PASO 1 : Triángulo (con hipotenusa = 1)</div>
+        <div id="step-triangle" style="font-size:12px;color:var(--text-secondary);">—</div>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">SENO (SOH)</div>
+        <div class="formula-box sin">sin(θ) = cateto opuesto / hipotenusa</div>
+        <div id="step-sin" style="margin-top:6px;font-size:12px;">—</div>
+        <span class="result-big" style="color:var(--accent-pink);" id="result-sin">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">COSENO (CAH)</div>
+        <div class="formula-box cos">cos(θ) = cateto adyacente / hipotenusa</div>
+        <div id="step-cos" style="margin-top:6px;font-size:12px;">—</div>
+        <span class="result-big" style="color:var(--accent-green);" id="result-cos">—</span>
+      </div>
+
+      <div class="calc-step">
+        <div class="step-title">TANGENTE (TOA)</div>
+        <div class="formula-box tan">tan(θ) = cateto opuesto / cateto adyacente</div>
+        <div id="step-tan" style="margin-top:6px;font-size:12px;">—</div>
+        <span class="result-big" style="color:var(--accent-orange);" id="result-tan">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="info-box materials">
+      <h3>🧪 SOH CAH TOA</h3>
+      <div class="soh-cah-toa">
+        SOH → Sen = Opuesto / Hipotenusa<br>
+        CAH → Cos = Adyacente / Hipotenusa<br>
+        TOA → Tan = Opuesto / Adyacente
+      </div>
+      <p style="margin-top:12px;">El triángulo siempre tiene un ángulo recto (90°). El ángulo θ es el que tú eliges.</p>
+    </div>
+
+    <div class="info-box explanation">
+      <h3>💡 ¿POR QUÉ SON ÚTILES?</h3>
+      <p>Las razones trigonométricas permiten <b>calcular alturas inaccesibles</b>: la altura de una montaña, de un edificio o de un árbol, solo conociendo un ángulo y una distancia.</p>
+      <p><b>Ejemplo real:</b> Si estás a 50 m de un edificio y el ángulo de elevación es 30°, ¿cuál es la altura? (La respuesta es 50 · tan(30°) ≈ 28.87 m).</p>
+      <div class="highlight">
+        <b>Regla de oro:</b> sin(θ) y cos(θ) siempre están entre -1 y 1. Por eso no pueden ser mayores que la hipotenusa.
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:window.close()" class="btn-back">← Cerrar laboratorio</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let angle = 30;
+
+document.getElementById('range-angle').addEventListener('input', (e) => {
+  angle = parseInt(e.target.value);
+  document.getElementById('val-angle').textContent = angle + '°';
+  update();
+});
+
+function drawTriangle() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Cercle trigonométrique
+  const cx = W / 2 - 50;
+  const cy = H / 2;
+  const radius = 140;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - radius - 20, cy); ctx.lineTo(cx + radius + 20, cy);
+  ctx.moveTo(cx, cy - radius - 20); ctx.lineTo(cx, cy + radius + 20);
+  ctx.stroke();
+
+  const rad = angle * Math.PI / 180;
+  const hyp = radius;
+  const opp = Math.sin(rad) * hyp;
+  const adj = Math.cos(rad) * hyp;
+
+  // Point sur le cercle
+  const px = cx + adj;
+  const py = cy - opp;
+
+  // Triangle
+  ctx.fillStyle = 'rgba(56,189,248,0.1)';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(px, cy);
+  ctx.lineTo(px, py);
+  ctx.closePath();
+  ctx.fill();
+
+  // Côtés
+  // Adyacente (vert)
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy); ctx.lineTo(px, cy);
+  ctx.stroke();
+
+  // Opuesto (rose)
+  ctx.strokeStyle = '#f472b6';
+  ctx.beginPath();
+  ctx.moveTo(px, cy); ctx.lineTo(px, py);
+  ctx.stroke();
+
+  // Hipotenusa (orange)
+  ctx.strokeStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy); ctx.lineTo(px, py);
+  ctx.stroke();
+
+  // Arc de l'angle
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, -rad, 0);
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#22c55e';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`cos = ${Math.cos(rad).toFixed(3)}`, cx + adj/2, cy + 20);
+
+  ctx.fillStyle = '#f472b6';
+  ctx.textAlign = 'left';
+  ctx.fillText(`sin = ${Math.sin(rad).toFixed(3)}`, px + 8, cy - opp/2);
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.textAlign = 'center';
+  ctx.fillText('1', (cx + px)/2 - 15, (cy + py)/2 - 10);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(`θ = ${angle}°`, cx + 55, cy - 12);
+}
+
+function update() {
+  const rad = angle * Math.PI / 180;
+  const sen = Math.sin(rad);
+  const cos = Math.cos(rad);
+  const tan = Math.tan(rad);
+
+  document.getElementById('step-triangle').innerHTML = 
+    `Hipotenusa = 1 (radio del círculo)<br>` +
+    `Cateto opuesto = sin(θ) = <b style="color:var(--accent-pink);">${sen.toFixed(3)}</b><br>` +
+    `Cateto adyacente = cos(θ) = <b style="color:var(--accent-green);">${cos.toFixed(3)}</b>`;
+
+  document.getElementById('step-sin').textContent = 
+    `sin(${angle}°) = ${sen.toFixed(3)} / 1`;
+  document.getElementById('result-sin').textContent = sen.toFixed(4);
+
+  document.getElementById('step-cos').textContent = 
+    `cos(${angle}°) = ${cos.toFixed(3)} / 1`;
+  document.getElementById('result-cos').textContent = cos.toFixed(4);
+
+  document.getElementById('step-tan').textContent = 
+    `tan(${angle}°) = ${sen.toFixed(3)} / ${cos.toFixed(3)}`;
+  document.getElementById('result-tan').textContent = tan.toFixed(4);
+
+  drawTriangle();
+}
+
+update();
+</script>
+</body>
+</html>
